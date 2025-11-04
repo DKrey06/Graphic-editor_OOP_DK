@@ -94,5 +94,18 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\Shapes\" />
+    <Folder Include="Models\Tools\" />
+    <Folder Include="Resources\Icons\" />
+    <Folder Include="Resources\Images\" />
+    <Folder Include="Resources\Styles\" />
+    <Folder Include="Services\" />
+    <Folder Include="Utilities\Enums\" />
+    <Folder Include="Utilities\Extensions\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Views\Controls\" />
+    <Folder Include="Views\Converters\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
