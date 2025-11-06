@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Utilities\Enums\ToolType.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -101,7 +102,6 @@
     <Folder Include="Resources\Images\" />
     <Folder Include="Resources\Styles\" />
     <Folder Include="Services\" />
-    <Folder Include="Utilities\Enums\" />
     <Folder Include="Utilities\Extensions\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Controls\" />
