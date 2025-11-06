@@ -65,6 +65,7 @@
     <Compile Include="Models\Tools\SelectionTool.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -111,7 +112,6 @@
     <Folder Include="Resources\Styles\" />
     <Folder Include="Services\" />
     <Folder Include="Utilities\Extensions\" />
-    <Folder Include="ViewModels\" />
     <Folder Include="Views\Controls\" />
     <Folder Include="Views\Converters\" />
   </ItemGroup>
