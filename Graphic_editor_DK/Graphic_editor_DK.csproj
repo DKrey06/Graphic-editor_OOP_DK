@@ -65,6 +65,8 @@
     <Compile Include="Models\Tools\SelectionTool.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
+    <Compile Include="Utilities\Extensions\ObservableObject.cs" />
+    <Compile Include="Utilities\Extensions\RelayCommand.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -111,7 +113,6 @@
     <Folder Include="Resources\Images\" />
     <Folder Include="Resources\Styles\" />
     <Folder Include="Services\" />
-    <Folder Include="Utilities\Extensions\" />
     <Folder Include="Views\Controls\" />
     <Folder Include="Views\Converters\" />
   </ItemGroup>
