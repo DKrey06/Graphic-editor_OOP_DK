@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Shapes\EllipseShape.cs" />
     <Compile Include="Models\Shapes\LineShape.cs" />
     <Compile Include="Models\Shapes\RectangleShape.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
