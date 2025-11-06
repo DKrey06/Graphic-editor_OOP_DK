@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Graphic_editor_DK.Models.Shapes;
+using Graphic_editor_DK.Utilities.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Graphic_editor_DK.Utilities.Enums;
 
 namespace Graphic_editor_DK.Models.Tools
 {
@@ -21,6 +22,10 @@ namespace Graphic_editor_DK.Models.Tools
             }
         }
 
+        public static event Action<BaseShape> OnShapeCreated;
+        public static event Action<BaseShape> OnShapeUpdated;
+        public static event Action<BaseShape> OnShapeFinalized;
+
         public event Action ToolChanged;
 
         public void SetTool(ToolType toolType)
@@ -30,7 +35,19 @@ namespace Graphic_editor_DK.Models.Tools
 
         private BaseTool CreateTool(ToolType toolType)
         {
-            return new SelectionTool();
+            switch (toolType)
+            {
+                case ToolType.Selection:
+                    return new SelectionTool();
+                case ToolType.Line:
+                    return new LineTool();
+                case ToolType.Rectangle:
+                    return new RectangleTool();
+                case ToolType.Ellipse:
+                    return new EllipseTool();
+                default:
+                    return new SelectionTool();
+            }
         }
     }
 }
