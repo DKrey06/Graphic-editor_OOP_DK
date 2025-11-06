@@ -1,26 +1,181 @@
-﻿using System;
+﻿using Graphic_editor_DK.Models.Shapes;
+using Graphic_editor_DK.Models.Tools;
+using Graphic_editor_DK.ViewModels;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace Graphic_editor_DK
 {
     public partial class MainWindow : Window
     {
+        private MainViewModel ViewModel => (MainViewModel)DataContext;
+        private List<BaseShape> _shapes = new List<BaseShape>();
+        private BaseShape _currentShape;
+        private Shape _currentShapeElement;
+
         public MainWindow()
         {
             InitializeComponent();
             this.DataContext = new ViewModels.MainViewModel();
+        }
+
+        private void DrawingCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var point = e.GetPosition(DrawingCanvas);
+
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                CreateNewShape(point);
+            }
+
+            ViewModel.ToolManager.CurrentTool?.OnMouseDown(point, e);
+        }
+
+        private void DrawingCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            var point = e.GetPosition(DrawingCanvas);
+
+            if (_currentShapeElement != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateCurrentShape(point);
+            }
+
+            ViewModel.ToolManager.CurrentTool?.OnMouseMove(point, e);
+        }
+
+        private void DrawingCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            var point = e.GetPosition(DrawingCanvas);
+
+            if (_currentShape != null && _currentShapeElement != null)
+            {
+                UpdateCurrentShape(point);
+                _shapes.Add(_currentShape);
+                _currentShape = null;
+                _currentShapeElement = null;
+            }
+
+            ViewModel.ToolManager.CurrentTool?.OnMouseUp(point, e);
+        }
+
+        private void Window_MouseMove(object sender, MouseEventArgs e)
+        {
+            var point = e.GetPosition(DrawingCanvas);
+            CoordinatesText.Text = $"X: {(int)point.X}, Y: {(int)point.Y}";
+        }
+
+        private void CreateNewShape(Point startPoint)
+        {
+            var currentTool = ViewModel.ToolManager.CurrentTool;
+
+            if (currentTool is LineTool)
+            {
+                var line = new Line
+                {
+                    X1 = startPoint.X,
+                    Y1 = startPoint.Y,
+                    X2 = startPoint.X,
+                    Y2 = startPoint.Y,
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2
+                };
+
+                DrawingCanvas.Children.Add(line);
+                _currentShapeElement = line;
+
+                _currentShape = new LineShape
+                {
+                    StartPoint = startPoint,
+                    EndPoint = startPoint,
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2
+                };
+            }
+            else if (currentTool is RectangleTool)
+            {
+                var rectangle = new Rectangle
+                {
+                    Stroke = Brushes.Black,
+                    Fill = Brushes.LightBlue,
+                    StrokeThickness = 2
+                };
+
+                Canvas.SetLeft(rectangle, startPoint.X);
+                Canvas.SetTop(rectangle, startPoint.Y);
+                rectangle.Width = 0;
+                rectangle.Height = 0;
+
+                DrawingCanvas.Children.Add(rectangle);
+                _currentShapeElement = rectangle;
+
+                _currentShape = new RectangleShape
+                {
+                    StartPoint = startPoint,
+                    EndPoint = startPoint,
+                    Stroke = Brushes.Black,
+                    Fill = Brushes.LightBlue,
+                    StrokeThickness = 2
+                };
+            }
+            else if (currentTool is EllipseTool)
+            {
+                var ellipse = new Ellipse
+                {
+                    Stroke = Brushes.Black,
+                    Fill = Brushes.LightGreen,
+                    StrokeThickness = 2
+                };
+
+                Canvas.SetLeft(ellipse, startPoint.X);
+                Canvas.SetTop(ellipse, startPoint.Y);
+                ellipse.Width = 0;
+                ellipse.Height = 0;
+
+                DrawingCanvas.Children.Add(ellipse);
+                _currentShapeElement = ellipse;
+
+                _currentShape = new EllipseShape
+                {
+                    StartPoint = startPoint,
+                    EndPoint = startPoint,
+                    Stroke = Brushes.Black,
+                    Fill = Brushes.LightGreen,
+                    StrokeThickness = 2
+                };
+            }
+        }
+
+        private void UpdateCurrentShape(Point currentPoint)
+        {
+            if (_currentShapeElement is Line line)
+            {
+                line.X2 = currentPoint.X;
+                line.Y2 = currentPoint.Y;
+                _currentShape.EndPoint = currentPoint;
+            }
+            else if (_currentShapeElement is Rectangle rectangle)
+            {
+                var start = _currentShape.StartPoint;
+                Canvas.SetLeft(rectangle, Math.Min(start.X, currentPoint.X));
+                Canvas.SetTop(rectangle, Math.Min(start.Y, currentPoint.Y));
+                rectangle.Width = Math.Abs(currentPoint.X - start.X);
+                rectangle.Height = Math.Abs(currentPoint.Y - start.Y);
+                _currentShape.EndPoint = currentPoint;
+            }
+            else if (_currentShapeElement is Ellipse ellipse)
+            {
+                var start = _currentShape.StartPoint;
+                Canvas.SetLeft(ellipse, Math.Min(start.X, currentPoint.X));
+                Canvas.SetTop(ellipse, Math.Min(start.Y, currentPoint.Y));
+                ellipse.Width = Math.Abs(currentPoint.X - start.X);
+                ellipse.Height = Math.Abs(currentPoint.Y - start.Y);
+                _currentShape.EndPoint = currentPoint;
+            }
         }
     }
 }
