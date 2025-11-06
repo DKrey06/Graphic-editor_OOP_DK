@@ -18,6 +18,10 @@ namespace Graphic_editor_DK
         private BaseShape _currentShape;
         private Shape _currentShapeElement;
 
+        private Rectangle _selectionRectangle;
+        private bool _isSelecting;
+        private Point _startPoint;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,7 +34,16 @@ namespace Graphic_editor_DK
 
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                CreateNewShape(point);
+                _startPoint = point;
+
+                if (ViewModel.ToolManager.CurrentTool is SelectionTool)
+                {
+                    StartSelection(point);
+                }
+                else
+                {
+                    CreateNewShape(point);
+                }
             }
 
             ViewModel.ToolManager.CurrentTool?.OnMouseDown(point, e);
@@ -40,7 +53,12 @@ namespace Graphic_editor_DK
         {
             var point = e.GetPosition(DrawingCanvas);
 
-            if (_currentShapeElement != null && e.LeftButton == MouseButtonState.Pressed)
+            if (_isSelecting && e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateSelection(point);
+            }
+
+            else if (_currentShapeElement != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateCurrentShape(point);
             }
@@ -52,7 +70,12 @@ namespace Graphic_editor_DK
         {
             var point = e.GetPosition(DrawingCanvas);
 
-            if (_currentShape != null && _currentShapeElement != null)
+            if (_isSelecting)
+            {
+                EndSelection(point);
+            }
+
+            else if (_currentShape != null && _currentShapeElement != null)
             {
                 UpdateCurrentShape(point);
                 _shapes.Add(_currentShape);
@@ -176,6 +199,53 @@ namespace Graphic_editor_DK
                 ellipse.Height = Math.Abs(currentPoint.Y - start.Y);
                 _currentShape.EndPoint = currentPoint;
             }
+        }
+
+        private void StartSelection(Point startPoint)
+        {
+            _selectionRectangle = new Rectangle
+            {
+                Stroke = Brushes.Blue,
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection { 4, 2 },
+                Fill = new SolidColorBrush(Color.FromArgb(30, 0, 120, 215))
+            };
+
+            Canvas.SetLeft(_selectionRectangle, startPoint.X);
+            Canvas.SetTop(_selectionRectangle, startPoint.Y);
+            _selectionRectangle.Width = 0;
+            _selectionRectangle.Height = 0;
+
+            DrawingCanvas.Children.Add(_selectionRectangle);
+            _isSelecting = true;
+        }
+
+        private void UpdateSelection(Point currentPoint)
+        {
+            if (_selectionRectangle != null)
+            {
+                Canvas.SetLeft(_selectionRectangle, Math.Min(_startPoint.X, currentPoint.X));
+                Canvas.SetTop(_selectionRectangle, Math.Min(_startPoint.Y, currentPoint.Y));
+                _selectionRectangle.Width = Math.Abs(currentPoint.X - _startPoint.X);
+                _selectionRectangle.Height = Math.Abs(currentPoint.Y - _startPoint.Y);
+            }
+        }
+
+        private void EndSelection(Point endPoint)
+        {
+            if (_selectionRectangle != null)
+            {
+                DrawingCanvas.Children.Remove(_selectionRectangle);
+                _selectionRectangle = null;
+            }
+            _isSelecting = false;
+
+            Console.WriteLine($"Selected area from {_startPoint} to {endPoint}");
+
+            MessageBox.Show($"Выделена область от {_startPoint} до {endPoint}",
+                          "Выделение",
+                          MessageBoxButton.OK,
+                          MessageBoxImage.Information);
         }
     }
 }
