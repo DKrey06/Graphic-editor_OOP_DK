@@ -58,6 +58,7 @@
     <Compile Include="Models\Shapes\EllipseShape.cs" />
     <Compile Include="Models\Shapes\LineShape.cs" />
     <Compile Include="Models\Shapes\RectangleShape.cs" />
+    <Compile Include="Models\Tools\BaseTool.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -100,7 +101,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\Tools\" />
     <Folder Include="Resources\Icons\" />
     <Folder Include="Resources\Images\" />
     <Folder Include="Resources\Styles\" />
