@@ -22,10 +22,6 @@ namespace Graphic_editor_DK.Models.Tools
             }
         }
 
-        public static event Action<BaseShape> OnShapeCreated;
-        public static event Action<BaseShape> OnShapeUpdated;
-        public static event Action<BaseShape> OnShapeFinalized;
-
         public event Action ToolChanged;
 
         public void SetTool(ToolType toolType)

@@ -31,7 +31,7 @@ namespace Graphic_editor_DK.Models.Tools
                 };
                 _isDrawing = true;
 
-                ToolManager.OnShapeCreated?.Invoke(_currentLine);
+                //Временно просто создаем фигуру, без событий. Позже подключить к холсту
             }
         }
 
@@ -40,7 +40,7 @@ namespace Graphic_editor_DK.Models.Tools
             if (_isDrawing && _currentLine != null)
             {
                 _currentLine.EndPoint = point;
-                ToolManager.OnShapeUpdated?.Invoke(_currentLine);
+                //Временно без событий
             }
         }
 
@@ -50,7 +50,7 @@ namespace Graphic_editor_DK.Models.Tools
             {
                 _currentLine.EndPoint = point;
                 _isDrawing = false;
-                ToolManager.OnShapeFinalized?.Invoke(_currentLine);
+                //Временно без событий
             }
         }
     }

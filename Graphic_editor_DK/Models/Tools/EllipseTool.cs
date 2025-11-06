@@ -27,11 +27,10 @@ namespace Graphic_editor_DK.Models.Tools
                     StartPoint = point,
                     EndPoint = point,
                     Stroke = Brushes.Black,
-                    Fill = Brushes.LightBlue,
+                    Fill = Brushes.LightGreen,
                     StrokeThickness = 2
                 };
                 _isDrawing = true;
-                ToolManager.OnShapeCreated?.Invoke(_currentEllipse);
             }
         }
 
@@ -40,7 +39,6 @@ namespace Graphic_editor_DK.Models.Tools
             if (_isDrawing && _currentEllipse != null)
             {
                 _currentEllipse.EndPoint = point;
-                ToolManager.OnShapeUpdated?.Invoke(_currentEllipse);
             }
         }
 
@@ -50,7 +48,6 @@ namespace Graphic_editor_DK.Models.Tools
             {
                 _currentEllipse.EndPoint = point;
                 _isDrawing = false;
-                ToolManager.OnShapeFinalized?.Invoke(_currentEllipse);
             }
         }
     }

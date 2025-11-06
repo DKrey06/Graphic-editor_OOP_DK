@@ -31,7 +31,6 @@ namespace Graphic_editor_DK.Models.Tools
                     StrokeThickness = 2
                 };
                 _isDrawing = true;
-                ToolManager.OnShapeCreated?.Invoke(_currentRectangle);
             }
         }
 
@@ -40,7 +39,6 @@ namespace Graphic_editor_DK.Models.Tools
             if (_isDrawing && _currentRectangle != null)
             {
                 _currentRectangle.EndPoint = point;
-                ToolManager.OnShapeUpdated?.Invoke(_currentRectangle);
             }
         }
 
@@ -50,7 +48,6 @@ namespace Graphic_editor_DK.Models.Tools
             {
                 _currentRectangle.EndPoint = point;
                 _isDrawing = false;
-                ToolManager.OnShapeFinalized?.Invoke(_currentRectangle);
             }
         }
     }

@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 
 namespace Graphic_editor_DK.Utilities.Extensions
 {
-    {
     public class ObservableObject : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
