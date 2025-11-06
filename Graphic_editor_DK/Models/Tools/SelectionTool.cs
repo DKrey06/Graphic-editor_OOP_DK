@@ -21,19 +21,22 @@ namespace Graphic_editor_DK.Models.Tools
         {
             _startPoint = point;
             _isSelecting = true;
+
+            Console.WriteLine($"Selection started at: {point}");
         }
 
         public override void OnMouseMove(Point point, MouseEventArgs e)
         {
             if (_isSelecting && e.LeftButton == MouseButtonState.Pressed)
             {
-                // Потом дополню
+                Console.WriteLine($"Selecting area from {_startPoint} to {point}");
             }
         }
 
         public override void OnMouseUp(Point point, MouseButtonEventArgs e)
         {
             _isSelecting = false;
+            Console.WriteLine($"Selection ended at: {point}");
         }
     }
 }
