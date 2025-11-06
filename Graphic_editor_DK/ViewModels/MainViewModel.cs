@@ -34,7 +34,16 @@ namespace Graphic_editor_DK.ViewModels
 
         private void ExecuteNew()
         {
-            MessageBox.Show("Создание нового проекта");
+            var result = MessageBox.Show("Создать новый проект?",
+                                        "Новый проект",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                MessageBox.Show("Новый проект создан", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                //Очистку холста добавить надо будет
+            }
         }
 
         private void ExecuteOpen()
