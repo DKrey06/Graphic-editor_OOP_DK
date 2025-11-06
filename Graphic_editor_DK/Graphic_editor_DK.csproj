@@ -60,6 +60,7 @@
     <Compile Include="Models\Shapes\RectangleShape.cs" />
     <Compile Include="Models\Tools\BaseTool.cs" />
     <Compile Include="Models\Tools\LineTool.cs" />
+    <Compile Include="Models\Tools\RectangleTool.cs" />
     <Compile Include="Models\Tools\SelectionTool.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
