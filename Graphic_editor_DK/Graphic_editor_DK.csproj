@@ -104,9 +104,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Shapes\BrushShape.cs" />
     <Compile Include="Models\Shapes\EllipseShape.cs" />
     <Compile Include="Models\Shapes\LineShape.cs" />
     <Compile Include="Models\Shapes\RectangleShape.cs" />
+    <Compile Include="Models\Shapes\TextShape.cs" />
     <Compile Include="Models\Shapes\TriangleShape.cs" />
     <Compile Include="Models\Tools\BaseTool.cs" />
     <Compile Include="Models\Tools\BrushTool.cs" />
