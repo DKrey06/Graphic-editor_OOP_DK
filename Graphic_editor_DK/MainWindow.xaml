@@ -170,28 +170,36 @@
 
             <StackPanel Orientation="Horizontal" Margin="10,0" x:Name="TextSettingsPanel" Visibility="Collapsed">
                 <TextBlock Text="Шрифт:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold"/>
-                <ComboBox x:Name="FontFamilyComboBox" Width="120" SelectedIndex="0">
+                <ComboBox x:Name="FontFamilyComboBox" Width="140" SelectedIndex="0">
                     <ComboBoxItem Content="Arial"/>
                     <ComboBoxItem Content="Times New Roman"/>
                     <ComboBoxItem Content="Verdana"/>
                     <ComboBoxItem Content="Calibri"/>
                     <ComboBoxItem Content="Segoe UI"/>
+                    <ComboBoxItem Content="Comic Sans MS"/>
+                    <ComboBoxItem Content="Georgia"/>
+                    <ComboBoxItem Content="Courier New"/>
+                    <ComboBoxItem Content="Tahoma"/>
                 </ComboBox>
 
                 <TextBlock Text="Размер:" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="SemiBold"/>
-                <ComboBox x:Name="FontSizeComboBox" Width="60" SelectedIndex="2">
+                <ComboBox x:Name="FontSizeComboBox" Width="70" SelectedIndex="3">
                     <ComboBoxItem Content="8"/>
                     <ComboBoxItem Content="10"/>
                     <ComboBoxItem Content="12"/>
                     <ComboBoxItem Content="14"/>
                     <ComboBoxItem Content="16"/>
                     <ComboBoxItem Content="18"/>
+                    <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="24"/>
+                    <ComboBoxItem Content="28"/>
                     <ComboBoxItem Content="32"/>
+                    <ComboBoxItem Content="36"/>
+                    <ComboBoxItem Content="48"/>
                 </ComboBox>
 
-                <Button x:Name="BoldButton" Content="Ж" FontWeight="Bold" Width="25" Margin="5,0" ToolTip="Жирный"/>
-                <Button x:Name="ItalicButton" Content="К" FontStyle="Italic" Width="25" Margin="5,0" ToolTip="Курсив"/>
+                <Button x:Name="BoldButton" Content="Ж" FontWeight="Bold" Width="30" Margin="5,0" ToolTip="Жирный"/>
+                <Button x:Name="ItalicButton" Content="К" FontStyle="Italic" Width="30" Margin="5,0" ToolTip="Курсив"/>
             </StackPanel>
 
             <Separator/>

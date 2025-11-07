@@ -47,11 +47,18 @@ namespace Graphic_editor_DK
             BrushSizeComboBox.SelectedIndex = 1;
             ToolsComboBox.SelectedIndex = 0;
 
+            InitializeTextSettings();
+
             BoldButton.Click += (s, e) => ToggleTextBold();
             ItalicButton.Click += (s, e) => ToggleTextItalic();
             FontFamilyComboBox.SelectionChanged += (s, e) => UpdateTextFont();
             FontSizeComboBox.SelectionChanged += (s, e) => UpdateTextSize();
+        }
 
+        private void InitializeTextSettings()
+        {
+            BoldButton.Tag = false;
+            ItalicButton.Tag = false;
         }
 
         private void OnToolChanged()
@@ -255,7 +262,6 @@ namespace Graphic_editor_DK
             ViewModel.ToolManager.CurrentTool?.OnMouseUp(point, e);
         }
 
-        // ДОБАВЛЕННЫЙ МЕТОД UpdateCurrentShape
         private void UpdateCurrentShape(Point currentPoint)
         {
             if (_currentShapeElement == null || _currentShape == null) return;
@@ -479,7 +485,6 @@ namespace Graphic_editor_DK
             polygon.Points.Add(new Point(end.X, end.Y));
         }
 
-        // МЕТОДЫ ДЛЯ ТЕКСТА
         private void StartTextPlacement(Point position)
         {
             _currentTextbox = new TextBox
@@ -599,7 +604,6 @@ namespace Graphic_editor_DK
             DrawingCanvas.Children.Add(textBlock);
         }
 
-        // МЕТОДЫ ДЛЯ НАСТРОЕК ТЕКСТА
         private double GetCurrentFontSize()
         {
             if (FontSizeComboBox.SelectedItem is ComboBoxItem item && double.TryParse(item.Content.ToString(), out double size))
@@ -613,7 +617,17 @@ namespace Graphic_editor_DK
         {
             if (FontFamilyComboBox.SelectedItem is ComboBoxItem item)
             {
-                return new FontFamily(item.Content.ToString());
+                string fontName = item.Content.ToString();
+
+                var availableFonts = Fonts.SystemFontFamilies;
+                foreach (var font in availableFonts)
+                {
+                    if (font.Source.Equals(fontName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return font;
+                    }
+                }
+                return new FontFamily("Arial");
             }
             return new FontFamily("Arial");
         }
@@ -668,7 +682,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОДЫ ВЫДЕЛЕНИЯ
         private void SelectElement(UIElement element, BaseShape shape)
         {
             _selectedElement = element;
@@ -676,12 +689,10 @@ namespace Graphic_editor_DK
 
             if (element is Shape shapeElement)
             {
-
                 if (!_originalStrokes.ContainsKey(element))
                 {
                     _originalStrokes[element] = shapeElement.Stroke;
                 }
-
                 shapeElement.Stroke = Brushes.Red;
             }
             else if (element is TextBlock textBlock)
@@ -788,7 +799,6 @@ namespace Graphic_editor_DK
                     return true;
                 }
             }
-
             return false;
         }
 
