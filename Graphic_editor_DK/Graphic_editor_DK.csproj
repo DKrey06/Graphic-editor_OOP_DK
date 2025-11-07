@@ -83,6 +83,8 @@
     <Compile Include="Models\Tools\RectangleTool.cs" />
     <Compile Include="Models\Tools\SelectionTool.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
+    <Compile Include="Services\DrawingService.cs" />
+    <Compile Include="Services\FileService.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
     <Compile Include="Utilities\Extensions\ObservableObject.cs" />
     <Compile Include="Utilities\Extensions\RelayCommand.cs" />
@@ -132,7 +134,6 @@
     <Folder Include="Resources\Icons\" />
     <Folder Include="Resources\Images\" />
     <Folder Include="Resources\Styles\" />
-    <Folder Include="Services\" />
     <Folder Include="Views\Controls\" />
     <Folder Include="Views\Converters\" />
   </ItemGroup>
