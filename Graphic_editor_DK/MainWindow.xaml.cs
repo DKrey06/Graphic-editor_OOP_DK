@@ -32,7 +32,6 @@ namespace Graphic_editor_DK
         private Point _dragStartPoint;
 
         private TextBox _currentTextbox;
-        private bool _isPlacingText;
 
         public MainWindow()
         {
@@ -44,7 +43,6 @@ namespace Graphic_editor_DK
 
             viewModel.ToolManager.ToolChanged += OnToolChanged;
 
-            ColorComboBox.SelectedIndex = 0;
             BrushSizeComboBox.SelectedIndex = 1;
             ToolsComboBox.SelectedIndex = 0;
         }
@@ -117,6 +115,7 @@ namespace Graphic_editor_DK
                 ViewModel.ToolManager.SetTool(toolType);
             }
         }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             if (e.Key == Key.Delete && _selectedElement != null)
@@ -207,7 +206,6 @@ namespace Graphic_editor_DK
             }
             else if (_currentBrushShape != null)
             {
-
                 _currentBrushShape.Points.Add(point);
                 _shapes.Add(_currentBrushShape);
                 ViewModel.DrawingService.Shapes.Add(_currentBrushShape);
@@ -232,7 +230,7 @@ namespace Graphic_editor_DK
             CoordinatesText.Text = $"X: {(int)point.X}, Y: {(int)point.Y}";
         }
 
-        // МЕТОДЫ ДЛЯ КИСТИ - ПЕРЕРАБОТАННЫЕ
+        // МЕТОДЫ ДЛЯ КИСТИ
         private void StartBrushStroke(Point startPoint)
         {
             _currentBrushShape = new BrushShape
@@ -416,7 +414,6 @@ namespace Graphic_editor_DK
 
             DrawingCanvas.Children.Add(_currentTextbox);
             _currentTextbox.Focus();
-            _isPlacingText = true;
         }
 
         private void CompleteTextPlacement()
@@ -442,7 +439,6 @@ namespace Graphic_editor_DK
             {
                 CancelTextPlacement();
             }
-            _isPlacingText = false;
             _currentTextbox = null;
         }
 
@@ -453,7 +449,6 @@ namespace Graphic_editor_DK
                 DrawingCanvas.Children.Remove(_currentTextbox);
                 _currentTextbox = null;
             }
-            _isPlacingText = false;
         }
 
         private void DrawTextShape(TextShape textShape)
@@ -970,26 +965,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        private void ColorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ColorComboBox.SelectedItem is ComboBoxItem item && item.Tag is string colorName)
-            {
-                try
-                {
-                    var brush = (Brush)new BrushConverter().ConvertFromString(colorName);
-                    _currentBrushColor = brush;
-                    if (_selectedElement != null)
-                    {
-                        ChangeSelectedShapeColor(brush, _selectedShape?.Fill ?? Brushes.Transparent);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка при изменении цвета: {ex.Message}");
-                }
-            }
-        }
-
         private void BrushSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (BrushSizeComboBox.SelectedItem is ComboBoxItem item && item.Content is string sizeText)
@@ -1106,6 +1081,22 @@ namespace Graphic_editor_DK
         public void OnProjectLoaded()
         {
             RefreshCanvas();
+        }
+
+        public void UpdateSelectedShapeStrokeColor(Brush strokeBrush)
+        {
+            if (_selectedElement != null && _selectedShape != null)
+            {
+                ChangeSelectedShapeColor(strokeBrush, _selectedShape.Fill ?? Brushes.Transparent);
+            }
+        }
+
+        public void UpdateSelectedShapeFillColor(Brush fillBrush)
+        {
+            if (_selectedElement != null && _selectedShape != null)
+            {
+                ChangeSelectedShapeColor(_selectedShape.Stroke ?? Brushes.Black, fillBrush);
+            }
         }
     }
 }

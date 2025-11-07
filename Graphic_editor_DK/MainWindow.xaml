@@ -1,6 +1,7 @@
 ﻿<Window x:Class="Graphic_editor_DK.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:enums="clr-namespace:Graphic_editor_DK.Utilities.Enums"
         Title="Graphic Editor DK - DKREY_06" 
         Height="700" Width="1000"
@@ -54,7 +55,6 @@
                 <MenuItem Header="Очистить холст" Command="{Binding NewCommand}"/>
             </MenuItem>
             <MenuItem Header="Вид" Foreground="Black">
-
             </MenuItem>
             <MenuItem Header="Инструменты" Foreground="Black">
             </MenuItem>
@@ -132,24 +132,41 @@
 
             <Separator/>
 
-            <TextBlock Text="Цвет:" 
-                      VerticalAlignment="Center" 
-                      Margin="10,0,5,0"
-                      FontWeight="SemiBold"/>
-            <ComboBox x:Name="ColorComboBox" 
-                      Width="100" 
-                      Height="28"
-                      SelectionChanged="ColorComboBox_SelectionChanged">
-                <ComboBoxItem Background="Black" Content="Черный" Tag="Black"/>
-                <ComboBoxItem Background="Red" Content="Красный" Tag="Red"/>
-                <ComboBoxItem Background="Green" Content="Зеленый" Tag="Green"/>
-                <ComboBoxItem Background="Blue" Content="Синий" Tag="Blue"/>
-                <ComboBoxItem Background="Yellow" Content="Желтый" Tag="Yellow"/>
-                <ComboBoxItem Background="Purple" Content="Фиолетовый" Tag="Purple"/>
-                <ComboBoxItem Background="Orange" Content="Оранжевый" Tag="Orange"/>
-                <ComboBoxItem Background="Brown" Content="Коричневый" Tag="Brown"/>
-                <ComboBoxItem Background="Pink" Content="Розовый" Tag="Pink"/>
-            </ComboBox>
+            <StackPanel Orientation="Horizontal" Margin="10,0">
+                <TextBlock Text="Цвет обводки:" 
+                          VerticalAlignment="Center" 
+                          Margin="0,0,5,0"
+                          FontWeight="SemiBold"/>
+
+                <Border BorderBrush="Gray" BorderThickness="1" Margin="0,0,15,0">
+                    <Button Command="{Binding ShowColorPickerCommand}" 
+                            CommandParameter="Stroke"
+                            Width="30" Height="25"
+                            ToolTip="Выбрать цвет обводки">
+                        <Button.Background>
+                            <SolidColorBrush Color="{Binding ColorPaletteService.SelectedStrokeColor}"/>
+                        </Button.Background>
+                    </Button>
+                </Border>
+
+                <TextBlock Text="Цвет заливки:" 
+                          VerticalAlignment="Center" 
+                          Margin="0,0,5,0"
+                          FontWeight="SemiBold"/>
+
+                <Border BorderBrush="Gray" BorderThickness="1" Margin="0,0,15,0">
+                    <Button Command="{Binding ShowColorPickerCommand}" 
+                            CommandParameter="Fill"
+                            Width="30" Height="25"
+                            ToolTip="Выбрать цвет заливки">
+                        <Button.Background>
+                            <SolidColorBrush Color="{Binding ColorPaletteService.SelectedFillColor}"/>
+                        </Button.Background>
+                    </Button>
+                </Border>
+            </StackPanel>
+
+            <Separator/>
 
             <TextBlock Text="Размер:" 
                       VerticalAlignment="Center" 

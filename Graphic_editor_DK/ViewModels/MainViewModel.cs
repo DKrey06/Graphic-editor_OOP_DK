@@ -3,11 +3,11 @@ using Graphic_editor_DK.Models.Tools;
 using Graphic_editor_DK.Services;
 using Graphic_editor_DK.Utilities.Enums;
 using Graphic_editor_DK.Utilities.Extensions;
-using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Graphic_editor_DK.ViewModels
 {
@@ -16,6 +16,7 @@ namespace Graphic_editor_DK.ViewModels
         private ToolManager _toolManager;
         private DrawingService _drawingService;
         private FileService _fileService;
+        private ColorPaletteService _colorPaletteService;
         private MainWindow _mainWindow;
 
         public MainViewModel()
@@ -23,15 +24,17 @@ namespace Graphic_editor_DK.ViewModels
             _toolManager = new ToolManager();
             _drawingService = new DrawingService();
             _fileService = new FileService();
+            _colorPaletteService = new ColorPaletteService();
 
             NewCommand = new RelayCommand(ExecuteNew);
             OpenCommand = new RelayCommand(ExecuteOpen);
             SaveCommand = new RelayCommand(ExecuteSave);
             ExportCommand = new RelayCommand(ExecuteExport);
             ExitCommand = new RelayCommand(ExecuteExit);
-
             SetToolCommand = new RelayCommand<ToolType>(ExecuteSetTool);
+            ShowColorPickerCommand = new RelayCommand<string>(ShowColorPicker);
         }
+
         public void SetMainWindow(MainWindow mainWindow)
         {
             _mainWindow = mainWindow;
@@ -39,14 +42,101 @@ namespace Graphic_editor_DK.ViewModels
 
         public ToolManager ToolManager => _toolManager;
         public DrawingService DrawingService => _drawingService;
+        public ColorPaletteService ColorPaletteService => _colorPaletteService;
 
         public ICommand NewCommand { get; }
         public ICommand OpenCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand ExportCommand { get; }
         public ICommand ExitCommand { get; }
-
         public ICommand SetToolCommand { get; }
+        public ICommand ShowColorPickerCommand { get; }
+
+        private void ShowColorPicker(string colorType)
+        {
+            var colorPicker = new Xceed.Wpf.Toolkit.ColorPicker
+            {
+                AvailableColorsSortingMode = Xceed.Wpf.Toolkit.ColorSortingMode.HueSaturationBrightness,
+                ShowStandardColors = true,
+                ShowAvailableColors = true,
+                ShowRecentColors = true,
+                SelectedColor = colorType == "Stroke" ?
+                    _colorPaletteService.SelectedStrokeColor :
+                    _colorPaletteService.SelectedFillColor,
+                Width = 300,
+                Height = 30,
+                IsOpen = true 
+            };
+
+
+            var okButton = new Button { Content = "OK", Width = 80, Margin = new Thickness(0, 10, 10, 0) };
+            var cancelButton = new Button { Content = "Отмена", Width = 80, Margin = new Thickness(0, 10, 0, 0) };
+
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+            buttonPanel.Children.Add(okButton);
+            buttonPanel.Children.Add(cancelButton);
+
+            var stackPanel = new StackPanel
+            {
+                Margin = new Thickness(10)
+            };
+            stackPanel.Children.Add(colorPicker);
+            stackPanel.Children.Add(buttonPanel);
+
+            var dialog = new Window
+            {
+                Title = colorType == "Stroke" ? "Выбор цвета обводки" : "Выбор цвета заливки",
+                Width = 350,
+                Height = 450,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Application.Current.MainWindow,
+                Content = stackPanel,
+                ResizeMode = ResizeMode.NoResize
+            };
+
+            Color? selectedColor = null;
+
+            colorPicker.SelectedColorChanged += (s, e) =>
+            {
+                if (colorPicker.SelectedColor.HasValue)
+                {
+                    selectedColor = colorPicker.SelectedColor.Value;
+                }
+            };
+
+            okButton.Click += (s, e) =>
+            {
+                if (selectedColor.HasValue)
+                {
+                    if (colorType == "Stroke")
+                    {
+                        _colorPaletteService.SelectedStrokeColor = selectedColor.Value;
+                        _mainWindow?.UpdateSelectedShapeStrokeColor(new SolidColorBrush(selectedColor.Value));
+                    }
+                    else
+                    {
+                        _colorPaletteService.SelectedFillColor = selectedColor.Value;
+                        _mainWindow?.UpdateSelectedShapeFillColor(new SolidColorBrush(selectedColor.Value));
+                    }
+                }
+                dialog.DialogResult = true;
+            };
+
+            cancelButton.Click += (s, e) =>
+            {
+                dialog.DialogResult = false;
+            };
+
+
+            if (dialog.ShowDialog() == true)
+            {
+            }
+        }
 
         private void ExecuteNew()
         {

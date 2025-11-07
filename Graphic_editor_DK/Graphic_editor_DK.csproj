@@ -121,6 +121,7 @@
     <Compile Include="Models\Tools\ToolItem.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
     <Compile Include="Models\Tools\TriangleTool.cs" />
+    <Compile Include="Services\ColorPaletteService.cs" />
     <Compile Include="Services\DrawingService.cs" />
     <Compile Include="Services\FileService.cs" />
     <Compile Include="Utilities\Enums\ToolType.cs" />
