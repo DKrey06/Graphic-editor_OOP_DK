@@ -26,10 +26,24 @@ namespace Graphic_editor_DK
         private Brush _currentBrushColor = Brushes.Black;
         private double _currentBrushSize = 3;
 
+        private UIElement _selectedElement;
+        private BaseShape _selectedShape;
+        private bool _isDragging;
+        private Point _dragStartPoint;
+
         public MainWindow()
         {
             InitializeComponent();
             this.DataContext = new ViewModels.MainViewModel();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete && _selectedElement != null)
+            {
+                DeleteSelectedShape();
+            }
+            base.OnKeyDown(e);
         }
 
         private void DrawingCanvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -39,10 +53,18 @@ namespace Graphic_editor_DK
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 _startPoint = point;
+                _dragStartPoint = point;
 
                 if (ViewModel.ToolManager.CurrentTool is SelectionTool)
                 {
-                    StartSelection(point);
+                    if (!TrySelectShape(point))
+                    {
+                        StartSelection(point);
+                    }
+                    else
+                    {
+                        _isDragging = true;
+                    }
                 }
                 else if (ViewModel.ToolManager.CurrentTool is BrushTool)
                 {
@@ -61,14 +83,22 @@ namespace Graphic_editor_DK
         {
             var point = e.GetPosition(DrawingCanvas);
 
-            if (_isSelecting && e.LeftButton == MouseButtonState.Pressed)
+
+            if (_isDragging && _selectedElement != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                MoveSelectedShape(point);
+            }
+
+            else if (_isSelecting && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateSelection(point);
             }
+
             else if (_currentBrushStroke != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateBrushStroke(point);
             }
+
             else if (_currentShapeElement != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateCurrentShape(point);
@@ -80,6 +110,10 @@ namespace Graphic_editor_DK
         private void DrawingCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             var point = e.GetPosition(DrawingCanvas);
+
+
+            _isDragging = false;
+
 
             if (_isSelecting)
             {
@@ -242,7 +276,7 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ
+        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ ОБЛАСТИ
         private void StartSelection(Point startPoint)
         {
             _selectionRectangle = new Rectangle
@@ -281,6 +315,228 @@ namespace Graphic_editor_DK
                 _selectionRectangle = null;
             }
             _isSelecting = false;
+        }
+
+        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ И ПЕРЕМЕЩЕНИЯ ФИГУР
+        private bool TrySelectShape(Point point)
+        {
+
+            ClearSelection();
+
+
+            for (int i = DrawingCanvas.Children.Count - 1; i >= 0; i--)
+            {
+                var element = DrawingCanvas.Children[i];
+
+                if (element is Line line && IsPointOnLine(line, point))
+                {
+                    SelectElement(element, FindShapeForLine(line));
+                    return true;
+                }
+                else if (element is Rectangle rect && IsPointInRectangle(rect, point))
+                {
+                    SelectElement(element, FindShapeForRectangle(rect));
+                    return true;
+                }
+                else if (element is Ellipse ellipse && IsPointInEllipse(ellipse, point))
+                {
+                    SelectElement(element, FindShapeForEllipse(ellipse));
+                    return true;
+                }
+                else if (element is Polyline brushStroke && IsPointOnPolyline(brushStroke, point))
+                {
+                    SelectElement(element, null);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsPointOnLine(Line line, Point point)
+        {
+
+            double distance = PointToLineDistance(point, new Point(line.X1, line.Y1), new Point(line.X2, line.Y2));
+            return distance < 10; 
+        }
+
+        private bool IsPointInRectangle(Rectangle rect, Point point)
+        {
+            double left = Canvas.GetLeft(rect);
+            double top = Canvas.GetTop(rect);
+            return point.X >= left && point.X <= left + rect.Width &&
+                   point.Y >= top && point.Y <= top + rect.Height;
+        }
+
+        private bool IsPointInEllipse(Ellipse ellipse, Point point)
+        {
+            double left = Canvas.GetLeft(ellipse);
+            double top = Canvas.GetTop(ellipse);
+            double centerX = left + ellipse.Width / 2;
+            double centerY = top + ellipse.Height / 2;
+
+            double normalizedX = Math.Pow((point.X - centerX) / (ellipse.Width / 2), 2);
+            double normalizedY = Math.Pow((point.Y - centerY) / (ellipse.Height / 2), 2);
+            return normalizedX + normalizedY <= 1;
+        }
+
+        private bool IsPointOnPolyline(Polyline polyline, Point point)
+        {
+            var bounds = new Rect(polyline.Points[0], polyline.Points[0]);
+            foreach (var pt in polyline.Points)
+            {
+                bounds.Union(pt);
+            }
+            bounds.Inflate(polyline.StrokeThickness, polyline.StrokeThickness);
+            return bounds.Contains(point);
+        }
+
+        private double PointToLineDistance(Point point, Point lineStart, Point lineEnd)
+        {
+            double A = point.X - lineStart.X;
+            double B = point.Y - lineStart.Y;
+            double C = lineEnd.X - lineStart.X;
+            double D = lineEnd.Y - lineStart.Y;
+
+            double dot = A * C + B * D;
+            double lenSq = C * C + D * D;
+            double param = (lenSq != 0) ? dot / lenSq : -1;
+
+            double xx, yy;
+
+            if (param < 0)
+            {
+                xx = lineStart.X;
+                yy = lineStart.Y;
+            }
+            else if (param > 1)
+            {
+                xx = lineEnd.X;
+                yy = lineEnd.Y;
+            }
+            else
+            {
+                xx = lineStart.X + param * C;
+                yy = lineStart.Y + param * D;
+            }
+
+            double dx = point.X - xx;
+            double dy = point.Y - yy;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        private void SelectElement(UIElement element, BaseShape shape)
+        {
+            _selectedElement = element;
+            _selectedShape = shape;
+
+            if (element is Shape shapeElement)
+            {
+                shapeElement.Stroke = Brushes.Red;
+                shapeElement.StrokeThickness *= 2;
+            }
+        }
+
+        private void ClearSelection()
+        {
+            if (_selectedElement is Shape shapeElement)
+            {
+                shapeElement.Stroke = Brushes.Black;
+                if (shapeElement.StrokeThickness > 2)
+                {
+                    shapeElement.StrokeThickness /= 2;
+                }
+            }
+
+            _selectedElement = null;
+            _selectedShape = null;
+        }
+
+        private BaseShape FindShapeForLine(Line line)
+        {
+            return _shapes.Find(s => s is LineShape ls &&
+                Math.Abs(ls.StartPoint.X - line.X1) < 0.1 &&
+                Math.Abs(ls.StartPoint.Y - line.Y1) < 0.1 &&
+                Math.Abs(ls.EndPoint.X - line.X2) < 0.1 &&
+                Math.Abs(ls.EndPoint.Y - line.Y2) < 0.1);
+        }
+
+        private BaseShape FindShapeForRectangle(Rectangle rect)
+        {
+            return _shapes.Find(s => s is RectangleShape);
+        }
+
+        private BaseShape FindShapeForEllipse(Ellipse ellipse)
+        {
+            return _shapes.Find(s => s is EllipseShape);
+        }
+
+        private void MoveSelectedShape(Point currentPoint)
+        {
+            double deltaX = currentPoint.X - _dragStartPoint.X;
+            double deltaY = currentPoint.Y - _dragStartPoint.Y;
+
+            if (_selectedElement is Line line)
+            {
+                line.X1 += deltaX;
+                line.Y1 += deltaY;
+                line.X2 += deltaX;
+                line.Y2 += deltaY;
+
+                if (_selectedShape != null)
+                {
+                    _selectedShape.StartPoint = new Point(_selectedShape.StartPoint.X + deltaX, _selectedShape.StartPoint.Y + deltaY);
+                    _selectedShape.EndPoint = new Point(_selectedShape.EndPoint.X + deltaX, _selectedShape.EndPoint.Y + deltaY);
+                }
+            }
+            else if (_selectedElement is Rectangle rect)
+            {
+                double newLeft = Canvas.GetLeft(rect) + deltaX;
+                double newTop = Canvas.GetTop(rect) + deltaY;
+                Canvas.SetLeft(rect, newLeft);
+                Canvas.SetTop(rect, newTop);
+
+                if (_selectedShape != null)
+                {
+                    _selectedShape.StartPoint = new Point(_selectedShape.StartPoint.X + deltaX, _selectedShape.StartPoint.Y + deltaY);
+                    _selectedShape.EndPoint = new Point(_selectedShape.EndPoint.X + deltaX, _selectedShape.EndPoint.Y + deltaY);
+                }
+            }
+            else if (_selectedElement is Ellipse ellipse)
+            {
+                double newLeft = Canvas.GetLeft(ellipse) + deltaX;
+                double newTop = Canvas.GetTop(ellipse) + deltaY;
+                Canvas.SetLeft(ellipse, newLeft);
+                Canvas.SetTop(ellipse, newTop);
+
+                if (_selectedShape != null)
+                {
+                    _selectedShape.StartPoint = new Point(_selectedShape.StartPoint.X + deltaX, _selectedShape.StartPoint.Y + deltaY);
+                    _selectedShape.EndPoint = new Point(_selectedShape.EndPoint.X + deltaX, _selectedShape.EndPoint.Y + deltaY);
+                }
+            }
+            else if (_selectedElement is Polyline polyline)
+            {
+                for (int i = 0; i < polyline.Points.Count; i++)
+                {
+                    polyline.Points[i] = new Point(polyline.Points[i].X + deltaX, polyline.Points[i].Y + deltaY);
+                }
+            }
+
+            _dragStartPoint = currentPoint;
+        }
+
+        private void DeleteSelectedShape()
+        {
+            if (_selectedElement != null)
+            {
+                DrawingCanvas.Children.Remove(_selectedElement);
+                if (_selectedShape != null)
+                {
+                    _shapes.Remove(_selectedShape);
+                }
+                ClearSelection();
+            }
         }
 
         // ОБРАБОТЧИКИ ПАЛИТРЫ
