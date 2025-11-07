@@ -22,7 +22,7 @@ namespace Graphic_editor_DK
         private bool _isSelecting;
         private Point _startPoint;
 
-        private Polyline _currentBrushStroke;
+        private BrushShape _currentBrushShape;
         private Brush _currentBrushColor = Brushes.Black;
         private double _currentBrushSize = 3;
 
@@ -41,7 +41,6 @@ namespace Graphic_editor_DK
             var viewModel = new ViewModels.MainViewModel();
             this.DataContext = viewModel;
             viewModel.SetMainWindow(this);
-
 
             ColorComboBox.SelectedIndex = 0;
             BrushSizeComboBox.SelectedIndex = 1;
@@ -109,7 +108,7 @@ namespace Graphic_editor_DK
             {
                 UpdateSelection(point);
             }
-            else if (_currentBrushStroke != null && e.LeftButton == MouseButtonState.Pressed)
+            else if (_currentBrushShape != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateBrushStroke(point);
             }
@@ -135,9 +134,14 @@ namespace Graphic_editor_DK
             {
                 EndSelection(point);
             }
-            else if (_currentBrushStroke != null)
+            else if (_currentBrushShape != null)
             {
-                _currentBrushStroke = null;
+
+                _currentBrushShape.Points.Add(point);
+                _shapes.Add(_currentBrushShape);
+                ViewModel.DrawingService.Shapes.Add(_currentBrushShape);
+                _currentBrushShape = null;
+                _currentShapeElement = null;
             }
             else if (_currentShape != null && _currentShapeElement != null)
             {
@@ -157,10 +161,19 @@ namespace Graphic_editor_DK
             CoordinatesText.Text = $"X: {(int)point.X}, Y: {(int)point.Y}";
         }
 
-        // МЕТОДЫ ДЛЯ КИСТИ
+        // МЕТОДЫ ДЛЯ КИСТИ - ПЕРЕРАБОТАННЫЕ
         private void StartBrushStroke(Point startPoint)
         {
-            _currentBrushStroke = new Polyline
+            _currentBrushShape = new BrushShape
+            {
+                Stroke = _currentBrushColor,
+                BrushSize = _currentBrushSize,
+                StartPoint = startPoint,
+                EndPoint = startPoint
+            };
+            _currentBrushShape.Points.Add(startPoint);
+
+            var polyline = new Polyline
             {
                 Stroke = _currentBrushColor,
                 StrokeThickness = _currentBrushSize,
@@ -168,16 +181,19 @@ namespace Graphic_editor_DK
                 StrokeStartLineCap = PenLineCap.Round,
                 StrokeEndLineCap = PenLineCap.Round
             };
-            _currentBrushStroke.Points.Add(startPoint);
+            polyline.Points.Add(startPoint);
 
-            DrawingCanvas.Children.Add(_currentBrushStroke);
+            DrawingCanvas.Children.Add(polyline);
+            _currentShapeElement = polyline;
         }
 
         private void UpdateBrushStroke(Point currentPoint)
         {
-            if (_currentBrushStroke != null)
+            if (_currentBrushShape != null && _currentShapeElement is Polyline polyline)
             {
-                _currentBrushStroke.Points.Add(currentPoint);
+                _currentBrushShape.Points.Add(currentPoint);
+                polyline.Points.Add(currentPoint);
+                _currentBrushShape.EndPoint = currentPoint;
             }
         }
 
@@ -294,23 +310,96 @@ namespace Graphic_editor_DK
             polygon.Points.Add(new Point(end.X, end.Y));
         }
 
+        // МЕТОД ДЛЯ ТЕКСТА
         private void StartTextPlacement(Point position)
         {
             _currentTextbox = new TextBox
             {
-                Width = 100,
-                Height = 25,
-                FontSize = 12,
+                Width = 200,
+                Height = 30,
+                FontSize = 14,
                 BorderThickness = new Thickness(1),
-                BorderBrush = Brushes.Gray
+                BorderBrush = Brushes.Gray,
+                Background = Brushes.White
             };
 
             Canvas.SetLeft(_currentTextbox, position.X);
             Canvas.SetTop(_currentTextbox, position.Y);
 
+            _currentTextbox.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    CompleteTextPlacement();
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    CancelTextPlacement();
+                }
+            };
+
+            _currentTextbox.LostFocus += (s, e) =>
+            {
+                CompleteTextPlacement();
+            };
+
             DrawingCanvas.Children.Add(_currentTextbox);
             _currentTextbox.Focus();
             _isPlacingText = true;
+        }
+
+        private void CompleteTextPlacement()
+        {
+            if (_currentTextbox != null && !string.IsNullOrWhiteSpace(_currentTextbox.Text))
+            {
+                var textShape = new TextShape
+                {
+                    StartPoint = new Point(Canvas.GetLeft(_currentTextbox), Canvas.GetTop(_currentTextbox)),
+                    EndPoint = new Point(Canvas.GetLeft(_currentTextbox) + 200, Canvas.GetTop(_currentTextbox) + 30),
+                    Stroke = _currentBrushColor,
+                    Text = _currentTextbox.Text,
+                    FontSize = 14
+                };
+
+                _shapes.Add(textShape);
+                ViewModel.DrawingService.Shapes.Add(textShape);
+
+                DrawingCanvas.Children.Remove(_currentTextbox);
+                DrawTextShape(textShape);
+            }
+            else
+            {
+                CancelTextPlacement();
+            }
+            _isPlacingText = false;
+            _currentTextbox = null;
+        }
+
+        private void CancelTextPlacement()
+        {
+            if (_currentTextbox != null)
+            {
+                DrawingCanvas.Children.Remove(_currentTextbox);
+                _currentTextbox = null;
+            }
+            _isPlacingText = false;
+        }
+
+        private void DrawTextShape(TextShape textShape)
+        {
+            var textBlock = new TextBlock
+            {
+                Text = textShape.Text,
+                FontSize = textShape.FontSize,
+                Foreground = textShape.Stroke,
+                FontFamily = new FontFamily(textShape.FontFamily),
+                Background = Brushes.Transparent
+            };
+
+            Canvas.SetLeft(textBlock, textShape.StartPoint.X);
+            Canvas.SetTop(textBlock, textShape.StartPoint.Y);
+
+            DrawingCanvas.Children.Add(textBlock);
         }
 
         private void UpdateCurrentShape(Point currentPoint)
@@ -417,14 +506,14 @@ namespace Graphic_editor_DK
                     SelectElement(element, FindShapeForPolygon(polygon));
                     return true;
                 }
-                else if (element is Polyline brushStroke && IsPointOnPolyline(brushStroke, point))
+                else if (element is Polyline polyline && IsPointOnPolyline(polyline, point))
                 {
-                    SelectElement(element, null);
+                    SelectElement(element, FindShapeForPolyline(polyline));
                     return true;
                 }
-                else if (element is TextBox textBox && IsPointInTextBox(textBox, point))
+                else if (element is TextBlock textBlock && IsPointInTextBlock(textBlock, point))
                 {
-                    SelectElement(element, null);
+                    SelectElement(element, FindShapeForTextBlock(textBlock));
                     return true;
                 }
             }
@@ -480,12 +569,12 @@ namespace Graphic_editor_DK
             return bounds.Contains(point);
         }
 
-        private bool IsPointInTextBox(TextBox textBox, Point point)
+        private bool IsPointInTextBlock(TextBlock textBlock, Point point)
         {
-            double left = Canvas.GetLeft(textBox);
-            double top = Canvas.GetTop(textBox);
-            return point.X >= left && point.X <= left + textBox.Width &&
-                   point.Y >= top && point.Y <= top + textBox.Height;
+            double left = Canvas.GetLeft(textBlock);
+            double top = Canvas.GetTop(textBlock);
+            return point.X >= left && point.X <= left + textBlock.ActualWidth &&
+                   point.Y >= top && point.Y <= top + textBlock.ActualHeight;
         }
 
         private double PointToLineDistance(Point point, Point lineStart, Point lineEnd)
@@ -532,9 +621,9 @@ namespace Graphic_editor_DK
                 shapeElement.Stroke = Brushes.Red;
                 shapeElement.StrokeThickness *= 2;
             }
-            else if (element is TextBox textBox)
+            else if (element is TextBlock textBlock)
             {
-                textBox.BorderBrush = Brushes.Red;
+                textBlock.Background = new SolidColorBrush(Color.FromArgb(80, 255, 0, 0));
             }
         }
 
@@ -548,9 +637,9 @@ namespace Graphic_editor_DK
                     shapeElement.StrokeThickness /= 2;
                 }
             }
-            else if (_selectedElement is TextBox textBox)
+            else if (_selectedElement is TextBlock textBlock)
             {
-                textBox.BorderBrush = Brushes.Gray;
+                textBlock.Background = Brushes.Transparent;
             }
 
             _selectedElement = null;
@@ -568,17 +657,47 @@ namespace Graphic_editor_DK
 
         private BaseShape FindShapeForRectangle(Rectangle rect)
         {
-            return _shapes.Find(s => s is RectangleShape);
+            double left = Canvas.GetLeft(rect);
+            double top = Canvas.GetTop(rect);
+            return _shapes.Find(s => s is RectangleShape rs &&
+                Math.Abs(rs.StartPoint.X - left) < 0.1 &&
+                Math.Abs(rs.StartPoint.Y - top) < 0.1);
         }
 
         private BaseShape FindShapeForEllipse(Ellipse ellipse)
         {
-            return _shapes.Find(s => s is EllipseShape);
+            double left = Canvas.GetLeft(ellipse);
+            double top = Canvas.GetTop(ellipse);
+            return _shapes.Find(s => s is EllipseShape es &&
+                Math.Abs(es.StartPoint.X - left) < 0.1 &&
+                Math.Abs(es.StartPoint.Y - top) < 0.1);
         }
 
         private BaseShape FindShapeForPolygon(Polygon polygon)
         {
             return _shapes.Find(s => s is TriangleShape);
+        }
+
+        private BaseShape FindShapeForPolyline(Polyline polyline)
+        {
+            if (polyline.Points.Count > 0)
+            {
+                var firstPoint = polyline.Points[0];
+                return _shapes.Find(s => s is BrushShape bs &&
+                    bs.Points.Count > 0 &&
+                    Math.Abs(bs.Points[0].X - firstPoint.X) < 0.1 &&
+                    Math.Abs(bs.Points[0].Y - firstPoint.Y) < 0.1);
+            }
+            return null;
+        }
+
+        private BaseShape FindShapeForTextBlock(TextBlock textBlock)
+        {
+            double left = Canvas.GetLeft(textBlock);
+            double top = Canvas.GetTop(textBlock);
+            return _shapes.Find(s => s is TextShape ts &&
+                Math.Abs(ts.StartPoint.X - left) < 0.1 &&
+                Math.Abs(ts.StartPoint.Y - top) < 0.1);
         }
 
         private void MoveSelectedShape(Point currentPoint)
@@ -644,13 +763,29 @@ namespace Graphic_editor_DK
                 {
                     polyline.Points[i] = new Point(polyline.Points[i].X + deltaX, polyline.Points[i].Y + deltaY);
                 }
+
+                if (_selectedShape is BrushShape brushShape)
+                {
+                    for (int i = 0; i < brushShape.Points.Count; i++)
+                    {
+                        brushShape.Points[i] = new Point(brushShape.Points[i].X + deltaX, brushShape.Points[i].Y + deltaY);
+                    }
+                    brushShape.StartPoint = new Point(brushShape.StartPoint.X + deltaX, brushShape.StartPoint.Y + deltaY);
+                    brushShape.EndPoint = new Point(brushShape.EndPoint.X + deltaX, brushShape.EndPoint.Y + deltaY);
+                }
             }
-            else if (_selectedElement is TextBox textBox)
+            else if (_selectedElement is TextBlock textBlock)
             {
-                double newLeft = Canvas.GetLeft(textBox) + deltaX;
-                double newTop = Canvas.GetTop(textBox) + deltaY;
-                Canvas.SetLeft(textBox, newLeft);
-                Canvas.SetTop(textBox, newTop);
+                double newLeft = Canvas.GetLeft(textBlock) + deltaX;
+                double newTop = Canvas.GetTop(textBlock) + deltaY;
+                Canvas.SetLeft(textBlock, newLeft);
+                Canvas.SetTop(textBlock, newTop);
+
+                if (_selectedShape != null)
+                {
+                    _selectedShape.StartPoint = new Point(_selectedShape.StartPoint.X + deltaX, _selectedShape.StartPoint.Y + deltaY);
+                    _selectedShape.EndPoint = new Point(_selectedShape.EndPoint.X + deltaX, _selectedShape.EndPoint.Y + deltaY);
+                }
             }
 
             _dragStartPoint = currentPoint;
@@ -689,9 +824,16 @@ namespace Graphic_editor_DK
                     }
                     break;
                 }
-                else if (element is TextBox textBox && IsPointInTextBox(textBox, point))
+                else if (element is TextBlock textBlock && IsPointInTextBlock(textBlock, point))
                 {
                     DrawingCanvas.Children.RemoveAt(i);
+
+                    var shapeToRemove = FindShapeForTextBlock(textBlock);
+                    if (shapeToRemove != null)
+                    {
+                        _shapes.Remove(shapeToRemove);
+                        ViewModel.DrawingService.Shapes.Remove(shapeToRemove);
+                    }
                     break;
                 }
             }
@@ -724,27 +866,12 @@ namespace Graphic_editor_DK
 
         private BaseShape FindShapeForElement(UIElement element)
         {
-            foreach (var shape in _shapes)
-            {
-                if (shape is LineShape lineShape && element is Line line)
-                {
-                    if (Math.Abs(lineShape.StartPoint.X - line.X1) < 0.1 &&
-                        Math.Abs(lineShape.StartPoint.Y - line.Y1) < 0.1)
-                        return shape;
-                }
-                else if (shape is RectangleShape rectShape && element is Rectangle rect)
-                {
-                    return rectShape;
-                }
-                else if (shape is EllipseShape ellipseShape && element is Ellipse ellipse)
-                {
-                    return ellipseShape;
-                }
-                else if (shape is TriangleShape triangleShape && element is Polygon polygon)
-                {
-                    return triangleShape;
-                }
-            }
+            if (element is Line line) return FindShapeForLine(line);
+            if (element is Rectangle rect) return FindShapeForRectangle(rect);
+            if (element is Ellipse ellipse) return FindShapeForEllipse(ellipse);
+            if (element is Polygon polygon) return FindShapeForPolygon(polygon);
+            if (element is Polyline polyline) return FindShapeForPolyline(polyline);
+            if (element is TextBlock textBlock) return FindShapeForTextBlock(textBlock);
             return null;
         }
 
@@ -764,6 +891,11 @@ namespace Graphic_editor_DK
 
                     _selectedShape.Fill = fill;
                 }
+            }
+            else if (_selectedElement is TextBlock textBlock && _selectedShape is TextShape textShape)
+            {
+                textBlock.Foreground = stroke;
+                textShape.Stroke = stroke;
             }
         }
 
@@ -871,6 +1003,30 @@ namespace Graphic_editor_DK
 
                     DrawingCanvas.Children.Add(polygon);
                     _shapes.Add(triangleShape);
+                }
+                else if (shape is BrushShape brushShape)
+                {
+                    var polyline = new Polyline
+                    {
+                        Stroke = brushShape.Stroke,
+                        StrokeThickness = brushShape.BrushSize,
+                        StrokeLineJoin = PenLineJoin.Round,
+                        StrokeStartLineCap = PenLineCap.Round,
+                        StrokeEndLineCap = PenLineCap.Round
+                    };
+
+                    foreach (var point in brushShape.Points)
+                    {
+                        polyline.Points.Add(point);
+                    }
+
+                    DrawingCanvas.Children.Add(polyline);
+                    _shapes.Add(brushShape);
+                }
+                else if (shape is TextShape textShape)
+                {
+                    DrawTextShape(textShape);
+                    _shapes.Add(textShape);
                 }
             }
         }

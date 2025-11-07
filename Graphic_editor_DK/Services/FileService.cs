@@ -46,7 +46,8 @@ namespace Graphic_editor_DK.Services
                     {
                         var serializer = new XmlSerializer(typeof(List<BaseShape>),
                             new[] { typeof(LineShape), typeof(RectangleShape),
-                                    typeof(EllipseShape), typeof(TriangleShape) });
+                                    typeof(EllipseShape), typeof(TriangleShape),
+                                    typeof(BrushShape), typeof(TextShape) });
 
                         using (var stream = File.Create(saveDialog.FileName))
                         {
@@ -94,7 +95,8 @@ namespace Graphic_editor_DK.Services
                     {
                         var serializer = new XmlSerializer(typeof(List<BaseShape>),
                             new[] { typeof(LineShape), typeof(RectangleShape),
-                                    typeof(EllipseShape), typeof(TriangleShape) });
+                                    typeof(EllipseShape), typeof(TriangleShape),
+                                    typeof(BrushShape), typeof(TextShape) });
 
                         using (var stream = File.OpenRead(openDialog.FileName))
                         {
@@ -232,6 +234,19 @@ namespace Graphic_editor_DK.Services
                             Canvas.SetLeft(newEllipse, Canvas.GetLeft(ellipse) - minX + padding);
                             Canvas.SetTop(newEllipse, Canvas.GetTop(ellipse) - minY + padding);
                             renderCanvas.Children.Add(newEllipse);
+                        }
+                        else if (child is TextBlock textBlock)
+                        {
+                            var newTextBlock = new TextBlock
+                            {
+                                Text = textBlock.Text,
+                                FontSize = textBlock.FontSize,
+                                Foreground = textBlock.Foreground,
+                                FontFamily = textBlock.FontFamily
+                            };
+                            Canvas.SetLeft(newTextBlock, Canvas.GetLeft(textBlock) - minX + padding);
+                            Canvas.SetTop(newTextBlock, Canvas.GetTop(textBlock) - minY + padding);
+                            renderCanvas.Children.Add(newTextBlock);
                         }
                         else if (child is Polygon polygon)
                         {
