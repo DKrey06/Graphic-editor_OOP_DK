@@ -12,6 +12,9 @@ namespace Graphic_editor_DK.Utilities.Enums
         Line,
         Rectangle,
         Ellipse,
-        Brush
+        Triangle,
+        Brush,
+        Text,
+        Eraser
     }
 }
