@@ -9,7 +9,7 @@
         Icon="Resources/Images/LogoCat.png"
         MouseMove="Window_MouseMove">
 
-    <Grid Background="White">
+    <Grid Background="#F5F5F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -41,7 +41,7 @@
             </DockPanel>
         </Border>
 
-        <Menu Grid.Row="1" Background="#F0F0F0">
+        <Menu Grid.Row="1" Background="#E8E8E8">
             <MenuItem Header="Файл" Foreground="Black">
                 <MenuItem Header="Новый" Command="{Binding NewCommand}"/>
                 <MenuItem Header="Открыть..." Command="{Binding OpenCommand}"/>
@@ -60,7 +60,7 @@
             </MenuItem>
         </Menu>
 
-        <ToolBar Grid.Row="2" Background="#E8E8E8">
+        <ToolBar Grid.Row="2" Background="#DCDCDC">
             <ComboBox x:Name="ToolsComboBox" 
                       Width="150" 
                       Height="28" 
@@ -222,7 +222,7 @@
         <ScrollViewer Grid.Row="3" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto"
-                      Background="#E8E8E8"
+                      Background="#DCDCDC"
                       Padding="15">
             <Border Background="White" 
                     BorderBrush="#A0A0A0" 
