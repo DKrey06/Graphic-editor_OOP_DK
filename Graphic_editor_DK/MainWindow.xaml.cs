@@ -22,6 +22,10 @@ namespace Graphic_editor_DK
         private bool _isSelecting;
         private Point _startPoint;
 
+        private Polyline _currentBrushStroke;
+        private Brush _currentBrushColor = Brushes.Black;
+        private double _currentBrushSize = 3;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -40,6 +44,10 @@ namespace Graphic_editor_DK
                 {
                     StartSelection(point);
                 }
+                else if (ViewModel.ToolManager.CurrentTool is BrushTool)
+                {
+                    StartBrushStroke(point);
+                }
                 else
                 {
                     CreateNewShape(point);
@@ -57,7 +65,10 @@ namespace Graphic_editor_DK
             {
                 UpdateSelection(point);
             }
-
+            else if (_currentBrushStroke != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateBrushStroke(point);
+            }
             else if (_currentShapeElement != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateCurrentShape(point);
@@ -73,6 +84,11 @@ namespace Graphic_editor_DK
             if (_isSelecting)
             {
                 EndSelection(point);
+            }
+
+            else if (_currentBrushStroke != null)
+            {
+                _currentBrushStroke = null;
             }
 
             else if (_currentShape != null && _currentShapeElement != null)
@@ -92,6 +108,31 @@ namespace Graphic_editor_DK
             CoordinatesText.Text = $"X: {(int)point.X}, Y: {(int)point.Y}";
         }
 
+        // МЕТОДЫ ДЛЯ КИСТИ
+        private void StartBrushStroke(Point startPoint)
+        {
+            _currentBrushStroke = new Polyline
+            {
+                Stroke = _currentBrushColor,
+                StrokeThickness = _currentBrushSize,
+                StrokeLineJoin = PenLineJoin.Round,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round
+            };
+            _currentBrushStroke.Points.Add(startPoint);
+
+            DrawingCanvas.Children.Add(_currentBrushStroke);
+        }
+
+        private void UpdateBrushStroke(Point currentPoint)
+        {
+            if (_currentBrushStroke != null)
+            {
+                _currentBrushStroke.Points.Add(currentPoint);
+            }
+        }
+
+        // МЕТОДЫ ДЛЯ ФИГУР
         private void CreateNewShape(Point startPoint)
         {
             var currentTool = ViewModel.ToolManager.CurrentTool;
@@ -171,10 +212,6 @@ namespace Graphic_editor_DK
                     StrokeThickness = 2
                 };
             }
-            else if (currentTool is BrushTool)
-            {
-                Console.WriteLine($"Brush started at {startPoint}");
-            };
         }
 
         private void UpdateCurrentShape(Point currentPoint)
@@ -205,6 +242,7 @@ namespace Graphic_editor_DK
             }
         }
 
+        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ
         private void StartSelection(Point startPoint)
         {
             _selectionRectangle = new Rectangle
@@ -243,21 +281,15 @@ namespace Graphic_editor_DK
                 _selectionRectangle = null;
             }
             _isSelecting = false;
-
-            Console.WriteLine($"Selected area from {_startPoint} to {endPoint}");
-
-            MessageBox.Show($"Выделена область от {_startPoint} до {endPoint}",
-                          "Выделение",
-                          MessageBoxButton.OK,
-                          MessageBoxImage.Information);
         }
+
+        // ОБРАБОТЧИКИ ПАЛИТРЫ
         private void ColorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ColorComboBox.SelectedItem is ComboBoxItem item && item.Tag is string colorName)
             {
-                var color = (Brush)new BrushConverter().ConvertFromString(colorName);
+                _currentBrushColor = (Brush)new BrushConverter().ConvertFromString(colorName);
                 Console.WriteLine($"Selected color: {colorName}");
-
             }
         }
 
@@ -265,7 +297,11 @@ namespace Graphic_editor_DK
         {
             if (BrushSizeComboBox.SelectedItem is ComboBoxItem item && item.Content is string sizeText)
             {
-                Console.WriteLine($"Selected brush size: {sizeText}");
+                if (double.TryParse(sizeText, out double size))
+                {
+                    _currentBrushSize = size;
+                    Console.WriteLine($"Selected brush size: {size}");
+                }
             }
         }
     }
