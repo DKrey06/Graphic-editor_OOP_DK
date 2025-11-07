@@ -23,9 +23,6 @@ namespace Graphic_editor_DK
         private Point _startPoint;
 
         private BrushShape _currentBrushShape;
-        private Brush _currentBrushColor = Brushes.Black;
-        private double _currentBrushSize = 3;
-
         private UIElement _selectedElement;
         private BaseShape _selectedShape;
         private bool _isDragging;
@@ -53,7 +50,6 @@ namespace Graphic_editor_DK
             if (currentTool != null)
             {
                 CurrentToolText.Text = "Инструмент: " + GetToolDisplayName(currentTool.ToolType);
-
                 UpdateToolsComboBoxSelection(currentTool.ToolType);
             }
         }
@@ -230,13 +226,34 @@ namespace Graphic_editor_DK
             CoordinatesText.Text = $"X: {(int)point.X}, Y: {(int)point.Y}";
         }
 
-        // МЕТОДЫ ДЛЯ КИСТИ
+        private double GetCurrentBrushSize()
+        {
+            if (BrushSizeComboBox.SelectedItem is ComboBoxItem item && item.Tag is string sizeTag)
+            {
+                if (double.TryParse(sizeTag, out double size))
+                {
+                    return size;
+                }
+            }
+            return 3;
+        }
+
+        private Brush GetCurrentStrokeColor()
+        {
+            return new SolidColorBrush(ViewModel.ColorPaletteService.SelectedStrokeColor);
+        }
+
+        private Brush GetCurrentFillColor()
+        {
+            return new SolidColorBrush(ViewModel.ColorPaletteService.SelectedFillColor);
+        }
+
         private void StartBrushStroke(Point startPoint)
         {
             _currentBrushShape = new BrushShape
             {
-                Stroke = _currentBrushColor,
-                BrushSize = _currentBrushSize,
+                Stroke = GetCurrentStrokeColor(),
+                BrushSize = GetCurrentBrushSize(),
                 StartPoint = startPoint,
                 EndPoint = startPoint
             };
@@ -244,8 +261,8 @@ namespace Graphic_editor_DK
 
             var polyline = new Polyline
             {
-                Stroke = _currentBrushColor,
-                StrokeThickness = _currentBrushSize,
+                Stroke = GetCurrentStrokeColor(),
+                StrokeThickness = GetCurrentBrushSize(),
                 StrokeLineJoin = PenLineJoin.Round,
                 StrokeStartLineCap = PenLineCap.Round,
                 StrokeEndLineCap = PenLineCap.Round
@@ -266,10 +283,12 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОДЫ ДЛЯ ФИГУР
         private void CreateNewShape(Point startPoint)
         {
             var currentTool = ViewModel.ToolManager.CurrentTool;
+            var strokeColor = GetCurrentStrokeColor();
+            var fillColor = GetCurrentFillColor();
+            var brushSize = GetCurrentBrushSize();
 
             if (currentTool is LineTool)
             {
@@ -279,8 +298,8 @@ namespace Graphic_editor_DK
                     Y1 = startPoint.Y,
                     X2 = startPoint.X,
                     Y2 = startPoint.Y,
-                    Stroke = _currentBrushColor,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    StrokeThickness = brushSize
                 };
 
                 DrawingCanvas.Children.Add(line);
@@ -290,17 +309,17 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = _currentBrushColor,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    StrokeThickness = brushSize
                 };
             }
             else if (currentTool is RectangleTool)
             {
                 var rectangle = new Rectangle
                 {
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightBlue,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
 
                 Canvas.SetLeft(rectangle, startPoint.X);
@@ -315,18 +334,18 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightBlue,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
             }
             else if (currentTool is EllipseTool)
             {
                 var ellipse = new Ellipse
                 {
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightGreen,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
 
                 Canvas.SetLeft(ellipse, startPoint.X);
@@ -341,18 +360,18 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightGreen,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
             }
             else if (currentTool is TriangleTool)
             {
                 var polygon = new Polygon
                 {
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightCoral,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
 
                 UpdateTrianglePoints(polygon, startPoint, startPoint);
@@ -364,9 +383,9 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = _currentBrushColor,
-                    Fill = Brushes.LightCoral,
-                    StrokeThickness = _currentBrushSize
+                    Stroke = strokeColor,
+                    Fill = fillColor,
+                    StrokeThickness = brushSize
                 };
             }
         }
@@ -379,7 +398,6 @@ namespace Graphic_editor_DK
             polygon.Points.Add(new Point(end.X, end.Y));
         }
 
-        // МЕТОД ДЛЯ ТЕКСТА
         private void StartTextPlacement(Point position)
         {
             _currentTextbox = new TextBox
@@ -424,7 +442,7 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = new Point(Canvas.GetLeft(_currentTextbox), Canvas.GetTop(_currentTextbox)),
                     EndPoint = new Point(Canvas.GetLeft(_currentTextbox) + 200, Canvas.GetTop(_currentTextbox) + 30),
-                    Stroke = _currentBrushColor,
+                    Stroke = GetCurrentStrokeColor(),
                     Text = _currentTextbox.Text,
                     FontSize = 14
                 };
@@ -502,7 +520,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ ОБЛАСТИ
         private void StartSelection(Point startPoint)
         {
             _selectionRectangle = new Rectangle
@@ -543,7 +560,6 @@ namespace Graphic_editor_DK
             _isSelecting = false;
         }
 
-        // МЕТОДЫ ДЛЯ ВЫДЕЛЕНИЯ И ПЕРЕМЕЩЕНИЯ ФИГУР
         private bool TrySelectShape(Point point)
         {
             ClearSelection();
@@ -871,7 +887,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОД ДЛЯ ЛАСТИКА
         private void EraseAtPoint(Point point)
         {
             for (int i = DrawingCanvas.Children.Count - 1; i >= 0; i--)
@@ -941,7 +956,6 @@ namespace Graphic_editor_DK
             return null;
         }
 
-        // ОБРАБОТЧИКИ ПАЛИТРЫ
         private void ChangeSelectedShapeColor(Brush stroke, Brush fill)
         {
             if (_selectedElement is Shape shapeElement && _selectedShape != null)
@@ -967,16 +981,9 @@ namespace Graphic_editor_DK
 
         private void BrushSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (BrushSizeComboBox.SelectedItem is ComboBoxItem item && item.Content is string sizeText)
-            {
-                if (double.TryParse(sizeText, out double size))
-                {
-                    _currentBrushSize = size;
-                }
-            }
+            // Размер теперь автоматически используется через GetCurrentBrushSize()
         }
 
-        // МЕТОД ДЛЯ ОБНОВЛЕНИЯ ХОЛСТА ПРИ ЗАГРУЗКЕ ПРОЕКТА
         public void RefreshCanvas()
         {
             DrawingCanvas.Children.Clear();
@@ -1077,7 +1084,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // МЕТОД ДЛЯ ОБНОВЛЕНИЯ ПРИ ЗАГРУЗКЕ ПРОЕКТА
         public void OnProjectLoaded()
         {
             RefreshCanvas();
