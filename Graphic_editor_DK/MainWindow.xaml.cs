@@ -700,28 +700,30 @@ namespace Graphic_editor_DK
 
             if (element is Shape shapeElement)
             {
+                var originalStroke = shapeElement.Stroke;
+
                 shapeElement.Stroke = Brushes.Red;
-                shapeElement.StrokeThickness *= 2;
+
+                shapeElement.Tag = originalStroke;
             }
             else if (element is TextBlock textBlock)
             {
                 textBlock.Background = new SolidColorBrush(Color.FromArgb(80, 255, 0, 0));
+                textBlock.Tag = textBlock.Background;
             }
         }
 
         private void ClearSelection()
         {
-            if (_selectedElement is Shape shapeElement)
+            if (_selectedElement is Shape shapeElement && shapeElement.Tag is Brush originalStroke)
             {
-                shapeElement.Stroke = Brushes.Black;
-                if (shapeElement.StrokeThickness > 2)
-                {
-                    shapeElement.StrokeThickness /= 2;
-                }
+                shapeElement.Stroke = originalStroke;
+                shapeElement.Tag = null;
             }
-            else if (_selectedElement is TextBlock textBlock)
+            else if (_selectedElement is TextBlock textBlock && textBlock.Tag is Brush originalBackground)
             {
-                textBlock.Background = Brushes.Transparent;
+                textBlock.Background = originalBackground;
+                textBlock.Tag = null;
             }
 
             _selectedElement = null;
