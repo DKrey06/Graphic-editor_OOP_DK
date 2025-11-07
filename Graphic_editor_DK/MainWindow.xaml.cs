@@ -29,6 +29,10 @@ namespace Graphic_editor_DK
         private Point _dragStartPoint;
 
         private TextBox _currentTextbox;
+        private bool _isTextEditing = false;
+
+        private Dictionary<UIElement, Brush> _originalStrokes = new Dictionary<UIElement, Brush>();
+        private Dictionary<UIElement, Brush> _originalBackgrounds = new Dictionary<UIElement, Brush>();
 
         public MainWindow()
         {
@@ -42,6 +46,12 @@ namespace Graphic_editor_DK
 
             BrushSizeComboBox.SelectedIndex = 1;
             ToolsComboBox.SelectedIndex = 0;
+
+            BoldButton.Click += (s, e) => ToggleTextBold();
+            ItalicButton.Click += (s, e) => ToggleTextItalic();
+            FontFamilyComboBox.SelectionChanged += (s, e) => UpdateTextFont();
+            FontSizeComboBox.SelectionChanged += (s, e) => UpdateTextSize();
+
         }
 
         private void OnToolChanged()
@@ -51,6 +61,19 @@ namespace Graphic_editor_DK
             {
                 CurrentToolText.Text = "Инструмент: " + GetToolDisplayName(currentTool.ToolType);
                 UpdateToolsComboBoxSelection(currentTool.ToolType);
+
+                if (currentTool.ToolType == Graphic_editor_DK.Utilities.Enums.ToolType.Text)
+                {
+                    TextSettingsPanel.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TextSettingsPanel.Visibility = Visibility.Collapsed;
+                    if (_isTextEditing)
+                    {
+                        CompleteTextPlacement();
+                    }
+                }
             }
         }
 
@@ -118,6 +141,14 @@ namespace Graphic_editor_DK
             {
                 DeleteSelectedShape();
             }
+            else if (e.Key == Key.Escape && _isTextEditing)
+            {
+                CancelTextPlacement();
+            }
+            else if (e.Key == Key.Escape)
+            {
+                ClearSelection();
+            }
             base.OnKeyDown(e);
         }
 
@@ -135,6 +166,7 @@ namespace Graphic_editor_DK
                     if (!TrySelectShape(point))
                     {
                         StartSelection(point);
+                        ClearSelection();
                     }
                     else
                     {
@@ -151,7 +183,10 @@ namespace Graphic_editor_DK
                 }
                 else if (ViewModel.ToolManager.CurrentTool is TextTool)
                 {
-                    StartTextPlacement(point);
+                    if (!_isTextEditing)
+                    {
+                        StartTextPlacement(point);
+                    }
                 }
                 else
                 {
@@ -218,6 +253,52 @@ namespace Graphic_editor_DK
             }
 
             ViewModel.ToolManager.CurrentTool?.OnMouseUp(point, e);
+        }
+
+        // ДОБАВЛЕННЫЙ МЕТОД UpdateCurrentShape
+        private void UpdateCurrentShape(Point currentPoint)
+        {
+            if (_currentShapeElement == null || _currentShape == null) return;
+
+            if (_currentShapeElement is Line line)
+            {
+                line.X2 = currentPoint.X;
+                line.Y2 = currentPoint.Y;
+                _currentShape.EndPoint = currentPoint;
+            }
+            else if (_currentShapeElement is Rectangle rect)
+            {
+                double left = Math.Min(_startPoint.X, currentPoint.X);
+                double top = Math.Min(_startPoint.Y, currentPoint.Y);
+                double width = Math.Abs(currentPoint.X - _startPoint.X);
+                double height = Math.Abs(currentPoint.Y - _startPoint.Y);
+
+                Canvas.SetLeft(rect, left);
+                Canvas.SetTop(rect, top);
+                rect.Width = width;
+                rect.Height = height;
+
+                _currentShape.EndPoint = currentPoint;
+            }
+            else if (_currentShapeElement is Ellipse ellipse)
+            {
+                double left = Math.Min(_startPoint.X, currentPoint.X);
+                double top = Math.Min(_startPoint.Y, currentPoint.Y);
+                double width = Math.Abs(currentPoint.X - _startPoint.X);
+                double height = Math.Abs(currentPoint.Y - _startPoint.Y);
+
+                Canvas.SetLeft(ellipse, left);
+                Canvas.SetTop(ellipse, top);
+                ellipse.Width = width;
+                ellipse.Height = height;
+
+                _currentShape.EndPoint = currentPoint;
+            }
+            else if (_currentShapeElement is Polygon polygon)
+            {
+                UpdateTrianglePoints(polygon, _startPoint, currentPoint);
+                _currentShape.EndPoint = currentPoint;
+            }
         }
 
         private void Window_MouseMove(object sender, MouseEventArgs e)
@@ -398,40 +479,62 @@ namespace Graphic_editor_DK
             polygon.Points.Add(new Point(end.X, end.Y));
         }
 
+        // МЕТОДЫ ДЛЯ ТЕКСТА
         private void StartTextPlacement(Point position)
         {
             _currentTextbox = new TextBox
             {
                 Width = 200,
-                Height = 30,
-                FontSize = 14,
+                Height = 100,
+                FontSize = GetCurrentFontSize(),
+                FontFamily = GetCurrentFontFamily(),
+                FontWeight = GetCurrentFontWeight(),
+                FontStyle = GetCurrentFontStyle(),
                 BorderThickness = new Thickness(1),
                 BorderBrush = Brushes.Gray,
-                Background = Brushes.White
+                Background = Brushes.White,
+                TextWrapping = TextWrapping.Wrap,
+                AcceptsReturn = true,
+                VerticalContentAlignment = VerticalAlignment.Top,
+                Text = "Введите текст здесь..."
             };
 
             Canvas.SetLeft(_currentTextbox, position.X);
             Canvas.SetTop(_currentTextbox, position.Y);
 
-            _currentTextbox.KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter)
-                {
-                    CompleteTextPlacement();
-                }
-                else if (e.Key == Key.Escape)
-                {
-                    CancelTextPlacement();
-                }
-            };
-
-            _currentTextbox.LostFocus += (s, e) =>
-            {
-                CompleteTextPlacement();
-            };
+            _currentTextbox.KeyDown += TextBox_KeyDown;
+            _currentTextbox.LostFocus += TextBox_LostFocus;
 
             DrawingCanvas.Children.Add(_currentTextbox);
-            _currentTextbox.Focus();
+            _isTextEditing = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _currentTextbox.Focus();
+                _currentTextbox.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                CompleteTextPlacement();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                CancelTextPlacement();
+                e.Handled = true;
+            }
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isTextEditing)
+            {
+                CompleteTextPlacement();
+            }
         }
 
         private void CompleteTextPlacement()
@@ -441,10 +544,14 @@ namespace Graphic_editor_DK
                 var textShape = new TextShape
                 {
                     StartPoint = new Point(Canvas.GetLeft(_currentTextbox), Canvas.GetTop(_currentTextbox)),
-                    EndPoint = new Point(Canvas.GetLeft(_currentTextbox) + 200, Canvas.GetTop(_currentTextbox) + 30),
+                    EndPoint = new Point(Canvas.GetLeft(_currentTextbox) + _currentTextbox.ActualWidth,
+                                       Canvas.GetTop(_currentTextbox) + _currentTextbox.ActualHeight),
                     Stroke = GetCurrentStrokeColor(),
                     Text = _currentTextbox.Text,
-                    FontSize = 14
+                    FontSize = _currentTextbox.FontSize,
+                    FontFamily = _currentTextbox.FontFamily.Source,
+                    FontWeight = _currentTextbox.FontWeight,
+                    FontStyle = _currentTextbox.FontStyle
                 };
 
                 _shapes.Add(textShape);
@@ -457,7 +564,9 @@ namespace Graphic_editor_DK
             {
                 CancelTextPlacement();
             }
+
             _currentTextbox = null;
+            _isTextEditing = false;
         }
 
         private void CancelTextPlacement()
@@ -467,6 +576,7 @@ namespace Graphic_editor_DK
                 DrawingCanvas.Children.Remove(_currentTextbox);
                 _currentTextbox = null;
             }
+            _isTextEditing = false;
         }
 
         private void DrawTextShape(TextShape textShape)
@@ -475,9 +585,12 @@ namespace Graphic_editor_DK
             {
                 Text = textShape.Text,
                 FontSize = textShape.FontSize,
-                Foreground = textShape.Stroke,
                 FontFamily = new FontFamily(textShape.FontFamily),
-                Background = Brushes.Transparent
+                FontWeight = textShape.FontWeight,
+                FontStyle = textShape.FontStyle,
+                Foreground = textShape.Stroke,
+                Background = Brushes.Transparent,
+                TextWrapping = TextWrapping.Wrap
             };
 
             Canvas.SetLeft(textBlock, textShape.StartPoint.X);
@@ -486,38 +599,116 @@ namespace Graphic_editor_DK
             DrawingCanvas.Children.Add(textBlock);
         }
 
-        private void UpdateCurrentShape(Point currentPoint)
+        // МЕТОДЫ ДЛЯ НАСТРОЕК ТЕКСТА
+        private double GetCurrentFontSize()
         {
-            if (_currentShapeElement is Line line)
+            if (FontSizeComboBox.SelectedItem is ComboBoxItem item && double.TryParse(item.Content.ToString(), out double size))
             {
-                line.X2 = currentPoint.X;
-                line.Y2 = currentPoint.Y;
-                _currentShape.EndPoint = currentPoint;
+                return size;
             }
-            else if (_currentShapeElement is Rectangle rectangle)
+            return 14;
+        }
+
+        private FontFamily GetCurrentFontFamily()
+        {
+            if (FontFamilyComboBox.SelectedItem is ComboBoxItem item)
             {
-                var start = _currentShape.StartPoint;
-                Canvas.SetLeft(rectangle, Math.Min(start.X, currentPoint.X));
-                Canvas.SetTop(rectangle, Math.Min(start.Y, currentPoint.Y));
-                rectangle.Width = Math.Abs(currentPoint.X - start.X);
-                rectangle.Height = Math.Abs(currentPoint.Y - start.Y);
-                _currentShape.EndPoint = currentPoint;
+                return new FontFamily(item.Content.ToString());
             }
-            else if (_currentShapeElement is Ellipse ellipse)
+            return new FontFamily("Arial");
+        }
+
+        private FontWeight GetCurrentFontWeight()
+        {
+            return (BoldButton.Tag as bool?) == true ? FontWeights.Bold : FontWeights.Normal;
+        }
+
+        private FontStyle GetCurrentFontStyle()
+        {
+            return (ItalicButton.Tag as bool?) == true ? FontStyles.Italic : FontStyles.Normal;
+        }
+
+        private void ToggleTextBold()
+        {
+            bool isBold = (BoldButton.Tag as bool?) ?? false;
+            BoldButton.Tag = !isBold;
+            BoldButton.FontWeight = !isBold ? FontWeights.Bold : FontWeights.Normal;
+
+            if (_currentTextbox != null)
             {
-                var start = _currentShape.StartPoint;
-                Canvas.SetLeft(ellipse, Math.Min(start.X, currentPoint.X));
-                Canvas.SetTop(ellipse, Math.Min(start.Y, currentPoint.Y));
-                ellipse.Width = Math.Abs(currentPoint.X - start.X);
-                ellipse.Height = Math.Abs(currentPoint.Y - start.Y);
-                _currentShape.EndPoint = currentPoint;
+                _currentTextbox.FontWeight = !isBold ? FontWeights.Bold : FontWeights.Normal;
             }
-            else if (_currentShapeElement is Polygon polygon)
+        }
+
+        private void ToggleTextItalic()
+        {
+            bool isItalic = (ItalicButton.Tag as bool?) ?? false;
+            ItalicButton.Tag = !isItalic;
+            ItalicButton.FontStyle = !isItalic ? FontStyles.Italic : FontStyles.Normal;
+
+            if (_currentTextbox != null)
             {
-                var start = _currentShape.StartPoint;
-                UpdateTrianglePoints(polygon, start, currentPoint);
-                _currentShape.EndPoint = currentPoint;
+                _currentTextbox.FontStyle = !isItalic ? FontStyles.Italic : FontStyles.Normal;
             }
+        }
+
+        private void UpdateTextFont()
+        {
+            if (_currentTextbox != null)
+            {
+                _currentTextbox.FontFamily = GetCurrentFontFamily();
+            }
+        }
+
+        private void UpdateTextSize()
+        {
+            if (_currentTextbox != null)
+            {
+                _currentTextbox.FontSize = GetCurrentFontSize();
+            }
+        }
+
+        // МЕТОДЫ ВЫДЕЛЕНИЯ
+        private void SelectElement(UIElement element, BaseShape shape)
+        {
+            _selectedElement = element;
+            _selectedShape = shape;
+
+            if (element is Shape shapeElement)
+            {
+
+                if (!_originalStrokes.ContainsKey(element))
+                {
+                    _originalStrokes[element] = shapeElement.Stroke;
+                }
+
+                shapeElement.Stroke = Brushes.Red;
+            }
+            else if (element is TextBlock textBlock)
+            {
+                if (!_originalBackgrounds.ContainsKey(element))
+                {
+                    _originalBackgrounds[element] = textBlock.Background;
+                }
+                textBlock.Background = new SolidColorBrush(Color.FromArgb(80, 255, 0, 0));
+            }
+        }
+
+        private void ClearSelection()
+        {
+            if (_selectedElement is Shape shapeElement && _originalStrokes.ContainsKey(_selectedElement))
+            {
+                shapeElement.Stroke = _selectedShape?.Stroke ?? _originalStrokes[_selectedElement];
+                _originalStrokes.Remove(_selectedElement);
+            }
+            else if (_selectedElement is TextBlock textBlock && _originalBackgrounds.ContainsKey(_selectedElement))
+            {
+                textBlock.Background = _originalBackgrounds[_selectedElement];
+                _originalBackgrounds.Remove(_selectedElement);
+            }
+
+            _selectedElement = null;
+            _selectedShape = null;
         }
 
         private void StartSelection(Point startPoint)
@@ -562,8 +753,6 @@ namespace Graphic_editor_DK
 
         private bool TrySelectShape(Point point)
         {
-            ClearSelection();
-
             for (int i = DrawingCanvas.Children.Count - 1; i >= 0; i--)
             {
                 var element = DrawingCanvas.Children[i];
@@ -693,43 +882,6 @@ namespace Graphic_editor_DK
             return Math.Sqrt(dx * dx + dy * dy);
         }
 
-        private void SelectElement(UIElement element, BaseShape shape)
-        {
-            _selectedElement = element;
-            _selectedShape = shape;
-
-            if (element is Shape shapeElement)
-            {
-                var originalStroke = shapeElement.Stroke;
-
-                shapeElement.Stroke = Brushes.Red;
-
-                shapeElement.Tag = originalStroke;
-            }
-            else if (element is TextBlock textBlock)
-            {
-                textBlock.Background = new SolidColorBrush(Color.FromArgb(80, 255, 0, 0));
-                textBlock.Tag = textBlock.Background;
-            }
-        }
-
-        private void ClearSelection()
-        {
-            if (_selectedElement is Shape shapeElement && shapeElement.Tag is Brush originalStroke)
-            {
-                shapeElement.Stroke = originalStroke;
-                shapeElement.Tag = null;
-            }
-            else if (_selectedElement is TextBlock textBlock && textBlock.Tag is Brush originalBackground)
-            {
-                textBlock.Background = originalBackground;
-                textBlock.Tag = null;
-            }
-
-            _selectedElement = null;
-            _selectedShape = null;
-        }
-
         private BaseShape FindShapeForLine(Line line)
         {
             return _shapes.Find(s => s is LineShape ls &&
@@ -743,9 +895,10 @@ namespace Graphic_editor_DK
         {
             double left = Canvas.GetLeft(rect);
             double top = Canvas.GetTop(rect);
-            return _shapes.Find(s => s is RectangleShape rs &&
+            var shape = _shapes.Find(s => s is RectangleShape rs &&
                 Math.Abs(rs.StartPoint.X - left) < 0.1 &&
                 Math.Abs(rs.StartPoint.Y - top) < 0.1);
+            return shape;
         }
 
         private BaseShape FindShapeForEllipse(Ellipse ellipse)
@@ -973,6 +1126,11 @@ namespace Graphic_editor_DK
 
                     _selectedShape.Fill = fill;
                 }
+
+                if (_originalStrokes.ContainsKey(_selectedElement))
+                {
+                    _originalStrokes[_selectedElement] = stroke;
+                }
             }
             else if (_selectedElement is TextBlock textBlock && _selectedShape is TextShape textShape)
             {
@@ -983,13 +1141,14 @@ namespace Graphic_editor_DK
 
         private void BrushSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Размер теперь автоматически используется через GetCurrentBrushSize()
         }
 
         public void RefreshCanvas()
         {
             DrawingCanvas.Children.Clear();
             _shapes.Clear();
+            _originalStrokes.Clear();
+            _originalBackgrounds.Clear();
 
             foreach (var shape in ViewModel.DrawingService.Shapes)
             {

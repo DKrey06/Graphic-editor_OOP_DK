@@ -2,16 +2,25 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Xml.Serialization;
-using Newtonsoft.Json;
 
 namespace Graphic_editor_DK.Models.Shapes
 {
     [Serializable]
     public class TextShape : BaseShape
     {
-        public string Text { get; set; } = "";
-        public double FontSize { get; set; } = 12;
+        public string Text { get; set; } = "Текст";
+        public double FontSize { get; set; } = 14;
         public string FontFamily { get; set; } = "Arial";
+        public FontWeight FontWeight { get; set; } = FontWeights.Normal;
+        public FontStyle FontStyle { get; set; } = FontStyles.Normal;
+
+        [XmlIgnore]
+        public Brush Background { get; set; } = Brushes.Transparent;
+        public string SerializedBackground
+        {
+            get => Background.ToString();
+            set => Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+        }
 
         public override void Draw(DrawingContext drawingContext)
         {
@@ -19,7 +28,7 @@ namespace Graphic_editor_DK.Models.Shapes
                 Text,
                 System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
-                new Typeface(FontFamily),
+                new Typeface(new FontFamily(FontFamily), FontStyle, FontWeight, FontStretches.Normal),
                 FontSize,
                 Stroke,
                 1.0);
@@ -29,8 +38,8 @@ namespace Graphic_editor_DK.Models.Shapes
 
         public override bool ContainsPoint(Point point)
         {
-            return Math.Abs(StartPoint.X - point.X) < 100 &&
-                   Math.Abs(StartPoint.Y - point.Y) < 50;
+            return point.X >= StartPoint.X && point.X <= EndPoint.X &&
+                   point.Y >= StartPoint.Y && point.Y <= EndPoint.Y;
         }
     }
 }

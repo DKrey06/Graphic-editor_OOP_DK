@@ -168,6 +168,34 @@
 
             <Separator/>
 
+            <StackPanel Orientation="Horizontal" Margin="10,0" x:Name="TextSettingsPanel" Visibility="Collapsed">
+                <TextBlock Text="Шрифт:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold"/>
+                <ComboBox x:Name="FontFamilyComboBox" Width="120" SelectedIndex="0">
+                    <ComboBoxItem Content="Arial"/>
+                    <ComboBoxItem Content="Times New Roman"/>
+                    <ComboBoxItem Content="Verdana"/>
+                    <ComboBoxItem Content="Calibri"/>
+                    <ComboBoxItem Content="Segoe UI"/>
+                </ComboBox>
+
+                <TextBlock Text="Размер:" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="SemiBold"/>
+                <ComboBox x:Name="FontSizeComboBox" Width="60" SelectedIndex="2">
+                    <ComboBoxItem Content="8"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="14"/>
+                    <ComboBoxItem Content="16"/>
+                    <ComboBoxItem Content="18"/>
+                    <ComboBoxItem Content="24"/>
+                    <ComboBoxItem Content="32"/>
+                </ComboBox>
+
+                <Button x:Name="BoldButton" Content="Ж" FontWeight="Bold" Width="25" Margin="5,0" ToolTip="Жирный"/>
+                <Button x:Name="ItalicButton" Content="К" FontStyle="Italic" Width="25" Margin="5,0" ToolTip="Курсив"/>
+            </StackPanel>
+
+            <Separator/>
+
             <TextBlock Text="Размер:" 
                       VerticalAlignment="Center" 
                       Margin="10,0,5,0"

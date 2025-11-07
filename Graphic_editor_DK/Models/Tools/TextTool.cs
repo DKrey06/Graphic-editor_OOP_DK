@@ -14,15 +14,9 @@ namespace Graphic_editor_DK.Models.Tools
     {
         public override ToolType ToolType => ToolType.Text;
 
-        private bool _isPlacingText;
-
         public override void OnMouseDown(Point point, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                _isPlacingText = true;
-                TextPlaced?.Invoke(point);
-            }
+            TextPlacementRequested?.Invoke(point);
         }
 
         public override void OnMouseMove(Point point, MouseEventArgs e)
@@ -31,9 +25,8 @@ namespace Graphic_editor_DK.Models.Tools
 
         public override void OnMouseUp(Point point, MouseButtonEventArgs e)
         {
-            _isPlacingText = false;
         }
 
-        public event Action<Point> TextPlaced;
+        public event Action<Point> TextPlacementRequested;
     }
 }
