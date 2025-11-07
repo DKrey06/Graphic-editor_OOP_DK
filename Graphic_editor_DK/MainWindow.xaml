@@ -11,18 +11,12 @@
     <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Header с логотипом -->
             <RowDefinition Height="Auto"/>
-            <!-- Меню -->
             <RowDefinition Height="Auto"/>
-            <!-- Панель инструментов -->
             <RowDefinition Height="*"/>
-            <!-- Область рисования -->
             <RowDefinition Height="Auto"/>
-            <!-- StatusBar -->
         </Grid.RowDefinitions>
 
-        <!-- Header с логотипом и именем -->
         <Border Grid.Row="0" Background="#007ACC" Height="60">
             <DockPanel>
                 <Image Source="Resources/Images/LogoCat.png" 
@@ -46,7 +40,6 @@
             </DockPanel>
         </Border>
 
-        <!-- Меню -->
         <Menu Grid.Row="1" Background="#F0F0F0">
             <MenuItem Header="Файл" Foreground="Black">
                 <MenuItem Header="Новый" Command="{Binding NewCommand}"/>
@@ -61,16 +54,13 @@
                 <MenuItem Header="Очистить холст" Command="{Binding NewCommand}"/>
             </MenuItem>
             <MenuItem Header="Вид" Foreground="Black">
-                <!-- Пусто -->
+
             </MenuItem>
             <MenuItem Header="Инструменты" Foreground="Black">
-                <!-- Пусто -->
             </MenuItem>
         </Menu>
 
-        <!-- Панель инструментов -->
         <ToolBar Grid.Row="2" Background="#E8E8E8">
-            <!-- Выпадающий список инструментов -->
             <ComboBox x:Name="ToolsComboBox" 
                       Width="150" 
                       Height="28" 
@@ -88,7 +78,6 @@
 
             <Separator/>
 
-            <!-- Быстрые кнопки инструментов со смайлами -->
             <Button ToolTip="Курсор"
                     Command="{Binding SetToolCommand}"
                     CommandParameter="{x:Static enums:ToolType.Selection}"
@@ -143,7 +132,6 @@
 
             <Separator/>
 
-            <!-- Настройки кисти -->
             <TextBlock Text="Цвет:" 
                       VerticalAlignment="Center" 
                       Margin="10,0,5,0"
@@ -178,7 +166,6 @@
             </ComboBox>
         </ToolBar>
 
-        <!-- Область рисования -->
         <ScrollViewer Grid.Row="3" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto"
@@ -198,7 +185,6 @@
             </Border>
         </ScrollViewer>
 
-        <!-- StatusBar -->
         <StatusBar Grid.Row="4" Background="#007ACC">
             <StatusBarItem>
                 <TextBlock x:Name="CoordinatesText" 

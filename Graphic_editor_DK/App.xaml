@@ -5,9 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Подключаем стили -->
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml"/>
-                <!-- Подключаем иконки -->
                 <ResourceDictionary Source="Resources/Icons/Icons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

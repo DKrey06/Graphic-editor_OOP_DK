@@ -42,30 +42,24 @@ namespace Graphic_editor_DK
             this.DataContext = viewModel;
             viewModel.SetMainWindow(this);
 
-            // Подписываемся на изменение инструмента
             viewModel.ToolManager.ToolChanged += OnToolChanged;
 
-            // Инициализация комбобоксов
             ColorComboBox.SelectedIndex = 0;
             BrushSizeComboBox.SelectedIndex = 1;
             ToolsComboBox.SelectedIndex = 0;
         }
 
-        // Обработчик изменения инструмента
         private void OnToolChanged()
         {
             var currentTool = ViewModel.ToolManager.CurrentTool;
             if (currentTool != null)
             {
-                // Обновляем текст в статус баре
                 CurrentToolText.Text = "Инструмент: " + GetToolDisplayName(currentTool.ToolType);
 
-                // Обновляем выбранный элемент в комбобоксе
                 UpdateToolsComboBoxSelection(currentTool.ToolType);
             }
         }
 
-        // Получение отображаемого имени инструмента
         private string GetToolDisplayName(Graphic_editor_DK.Utilities.Enums.ToolType toolType)
         {
             switch (toolType)
@@ -82,7 +76,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // Обновление выбранного элемента в комбобоксе
         private void UpdateToolsComboBoxSelection(Graphic_editor_DK.Utilities.Enums.ToolType toolType)
         {
             string tag = toolType.ToString();
@@ -96,7 +89,6 @@ namespace Graphic_editor_DK
             }
         }
 
-        // Обработчик изменения выбранного инструмента в комбобоксе
         private void ToolsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ToolsComboBox.SelectedItem is ComboBoxItem item && item.Tag is string toolTag)
