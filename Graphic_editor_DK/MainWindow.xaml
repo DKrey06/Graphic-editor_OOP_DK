@@ -21,27 +21,35 @@
 
         <ToolBar DockPanel.Dock="Top">
             <Button Content="Выделение" 
-                    Command="{Binding SetToolCommand}"
-                    CommandParameter="{x:Static enums:ToolType.Selection}"/>
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Selection}"/>
             <Button Content="Линия" 
-                    Command="{Binding SetToolCommand}"
-                    CommandParameter="{x:Static enums:ToolType.Line}"/>
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Line}"/>
             <Button Content="Прямоугольник" 
-                    Command="{Binding SetToolCommand}"
-                    CommandParameter="{x:Static enums:ToolType.Rectangle}"/>
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Rectangle}"/>
             <Button Content="Эллипс" 
-                    Command="{Binding SetToolCommand}"
-                    CommandParameter="{x:Static enums:ToolType.Ellipse}"/>
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Ellipse}"/>
+            <Button Content="Треугольник" 
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Triangle}"/>
+            <Button Content="Текст" 
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Text}"/>
             <Button Content="Кисть" 
-                    Command="{Binding SetToolCommand}"
-                    CommandParameter="{x:Static enums:ToolType.Brush}"/>
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Brush}"/>
+            <Button Content="Ластик" 
+            Command="{Binding SetToolCommand}"
+            CommandParameter="{x:Static enums:ToolType.Eraser}"/>
 
             <Separator/>
-
-            <!--Палитра базовых цветов (потом надо библиотеку)))-->
+            <!-- Палитра базовых цветов -->
             <TextBlock Text="Цвет:" VerticalAlignment="Center" Margin="5,0"/>
             <ComboBox x:Name="ColorComboBox" Width="80" 
-                      SelectionChanged="ColorComboBox_SelectionChanged">
+              SelectionChanged="ColorComboBox_SelectionChanged">
                 <ComboBoxItem Background="Black" Tag="Black"/>
                 <ComboBoxItem Background="Red" Tag="Red"/>
                 <ComboBoxItem Background="Green" Tag="Green"/>
@@ -55,7 +63,7 @@
 
             <TextBlock Text="Размер:" VerticalAlignment="Center" Margin="5,0"/>
             <ComboBox x:Name="BrushSizeComboBox" Width="60"
-                      SelectionChanged="BrushSizeComboBox_SelectionChanged">
+              SelectionChanged="BrushSizeComboBox_SelectionChanged">
                 <ComboBoxItem Content="1"/>
                 <ComboBoxItem Content="3"/>
                 <ComboBoxItem Content="5"/>
