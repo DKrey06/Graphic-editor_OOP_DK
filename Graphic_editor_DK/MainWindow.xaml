@@ -6,7 +6,6 @@
         MouseMove="Window_MouseMove">
 
     <DockPanel>
-
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Файл">
                 <MenuItem Header="Новый" Command="{Binding NewCommand}"/>
@@ -33,6 +32,36 @@
             <Button Content="Эллипс" 
                     Command="{Binding SetToolCommand}"
                     CommandParameter="{x:Static enums:ToolType.Ellipse}"/>
+            <Button Content="Кисть" 
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Brush}"/>
+
+            <Separator/>
+
+            <!--Палитра базовых цветов (потом надо библиотеку)))-->
+            <TextBlock Text="Цвет:" VerticalAlignment="Center" Margin="5,0"/>
+            <ComboBox x:Name="ColorComboBox" Width="80" 
+                      SelectionChanged="ColorComboBox_SelectionChanged">
+                <ComboBoxItem Background="Black" Tag="Black"/>
+                <ComboBoxItem Background="Red" Tag="Red"/>
+                <ComboBoxItem Background="Green" Tag="Green"/>
+                <ComboBoxItem Background="Blue" Tag="Blue"/>
+                <ComboBoxItem Background="Yellow" Tag="Yellow"/>
+                <ComboBoxItem Background="Purple" Tag="Purple"/>
+                <ComboBoxItem Background="Orange" Tag="Orange"/>
+            </ComboBox>
+
+            <Separator/>
+
+            <TextBlock Text="Размер:" VerticalAlignment="Center" Margin="5,0"/>
+            <ComboBox x:Name="BrushSizeComboBox" Width="60"
+                      SelectionChanged="BrushSizeComboBox_SelectionChanged">
+                <ComboBoxItem Content="1"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="8"/>
+                <ComboBoxItem Content="12"/>
+            </ComboBox>
         </ToolBar>
 
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -45,6 +74,7 @@
 
         <StatusBar DockPanel.Dock="Bottom">
             <TextBlock x:Name="CoordinatesText" Text="X: 0, Y: 0"/>
+            <TextBlock x:Name="ToolInfoText" Text="Инструмент: Выделение" Margin="20,0"/>
         </StatusBar>
     </DockPanel>
 </Window>
