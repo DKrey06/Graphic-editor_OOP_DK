@@ -10,6 +10,8 @@ namespace Graphic_editor_DK.Models.Shapes
     [XmlInclude(typeof(RectangleShape))]
     [XmlInclude(typeof(EllipseShape))]
     [XmlInclude(typeof(TriangleShape))]
+    [XmlInclude(typeof(BrushShape))]
+    [XmlInclude(typeof(TextShape))]
     [Serializable]
     [JsonObject(IsReference = false)]
     public abstract class BaseShape
