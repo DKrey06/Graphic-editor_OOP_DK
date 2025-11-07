@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 
 namespace Graphic_editor_DK.ViewModels
 {
@@ -15,6 +16,7 @@ namespace Graphic_editor_DK.ViewModels
         private ToolManager _toolManager;
         private DrawingService _drawingService;
         private FileService _fileService;
+        private MainWindow _mainWindow;
 
         public MainViewModel()
         {
@@ -25,9 +27,14 @@ namespace Graphic_editor_DK.ViewModels
             NewCommand = new RelayCommand(ExecuteNew);
             OpenCommand = new RelayCommand(ExecuteOpen);
             SaveCommand = new RelayCommand(ExecuteSave);
+            ExportCommand = new RelayCommand(ExecuteExport);
             ExitCommand = new RelayCommand(ExecuteExit);
 
             SetToolCommand = new RelayCommand<ToolType>(ExecuteSetTool);
+        }
+        public void SetMainWindow(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
         }
 
         public ToolManager ToolManager => _toolManager;
@@ -36,17 +43,19 @@ namespace Graphic_editor_DK.ViewModels
         public ICommand NewCommand { get; }
         public ICommand OpenCommand { get; }
         public ICommand SaveCommand { get; }
+        public ICommand ExportCommand { get; }
         public ICommand ExitCommand { get; }
 
         public ICommand SetToolCommand { get; }
 
         private void ExecuteNew()
         {
-            var result = MessageBox.Show("Создать новый проект?", "Новый проект",
+            var result = MessageBox.Show("Создать новый проект? Все несохраненные данные будут потеряны.", "Новый проект",
                                        MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 _drawingService.Clear();
+                _mainWindow?.RefreshCanvas();
                 MessageBox.Show("Новый проект создан", "Успех",
                               MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -54,26 +63,59 @@ namespace Graphic_editor_DK.ViewModels
 
         private void ExecuteSave()
         {
+            if (_drawingService.Shapes.Count == 0)
+            {
+                MessageBox.Show("Нет фигур для сохранения", "Информация",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             var shapesList = new List<BaseShape>(_drawingService.Shapes);
             _fileService.SaveProject(shapesList);
         }
 
         private void ExecuteOpen()
         {
-            var shapes = _fileService.LoadProject();
-            if (shapes != null)
+            var result = MessageBox.Show("Загрузить проект? Все несохраненные данные будут потеряны.", "Загрузка проекта",
+                                       MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
             {
-                _drawingService.Clear();
-                foreach (var shape in shapes)
+                var shapes = _fileService.LoadProject();
+                if (shapes != null)
                 {
-                    _drawingService.Shapes.Add(shape);
+                    _drawingService.Clear();
+                    foreach (var shape in shapes)
+                    {
+                        _drawingService.Shapes.Add(shape);
+                    }
+                    _mainWindow?.RefreshCanvas();
                 }
+            }
+        }
+
+        private void ExecuteExport()
+        {
+            if (_drawingService.Shapes.Count == 0)
+            {
+                MessageBox.Show("Нет фигур для экспорта", "Информация",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (_mainWindow != null)
+            {
+                _fileService.ExportToImage(_mainWindow.DrawingCanvas);
             }
         }
 
         private void ExecuteExit()
         {
-            Application.Current.Shutdown();
+            var result = MessageBox.Show("Выйти из программы? Все несохраненные данные будут потеряны.", "Выход",
+                                       MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                Application.Current.Shutdown();
+            }
         }
 
         private void ExecuteSetTool(ToolType toolType)

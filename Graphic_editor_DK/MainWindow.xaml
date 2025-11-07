@@ -20,6 +20,8 @@
                 <MenuItem Header="Открыть" Command="{Binding OpenCommand}"/>
                 <MenuItem Header="Сохранить" Command="{Binding SaveCommand}"/>
                 <Separator/>
+                <MenuItem Header="Экспорт в изображение" Command="{Binding ExportCommand}"/>
+                <Separator/>
                 <MenuItem Header="Выход" Command="{Binding ExitCommand}"/>
             </MenuItem>
             <MenuItem Header="Правка"/>

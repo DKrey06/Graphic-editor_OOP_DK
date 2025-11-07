@@ -37,7 +37,14 @@ namespace Graphic_editor_DK
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new ViewModels.MainViewModel();
+
+            var viewModel = new ViewModels.MainViewModel();
+            this.DataContext = viewModel;
+            viewModel.SetMainWindow(this);
+
+
+            ColorComboBox.SelectedIndex = 0;
+            BrushSizeComboBox.SelectedIndex = 1;
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -187,8 +194,8 @@ namespace Graphic_editor_DK
                     Y1 = startPoint.Y,
                     X2 = startPoint.X,
                     Y2 = startPoint.Y,
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 2
+                    Stroke = _currentBrushColor,
+                    StrokeThickness = _currentBrushSize
                 };
 
                 DrawingCanvas.Children.Add(line);
@@ -198,17 +205,17 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 2
+                    Stroke = _currentBrushColor,
+                    StrokeThickness = _currentBrushSize
                 };
             }
             else if (currentTool is RectangleTool)
             {
                 var rectangle = new Rectangle
                 {
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightBlue,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
 
                 Canvas.SetLeft(rectangle, startPoint.X);
@@ -223,18 +230,18 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightBlue,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
             }
             else if (currentTool is EllipseTool)
             {
                 var ellipse = new Ellipse
                 {
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightGreen,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
 
                 Canvas.SetLeft(ellipse, startPoint.X);
@@ -249,18 +256,18 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightGreen,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
             }
             else if (currentTool is TriangleTool)
             {
                 var polygon = new Polygon
                 {
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightCoral,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
 
                 UpdateTrianglePoints(polygon, startPoint, startPoint);
@@ -272,9 +279,9 @@ namespace Graphic_editor_DK
                 {
                     StartPoint = startPoint,
                     EndPoint = startPoint,
-                    Stroke = Brushes.Black,
+                    Stroke = _currentBrushColor,
                     Fill = Brushes.LightCoral,
-                    StrokeThickness = 2
+                    StrokeThickness = _currentBrushSize
                 };
             }
         }
@@ -742,11 +749,41 @@ namespace Graphic_editor_DK
         }
 
         // ОБРАБОТЧИКИ ПАЛИТРЫ
+        private void ChangeSelectedShapeColor(Brush stroke, Brush fill)
+        {
+            if (_selectedElement is Shape shapeElement && _selectedShape != null)
+            {
+                shapeElement.Stroke = stroke;
+                _selectedShape.Stroke = stroke;
+
+                if (shapeElement is Rectangle || shapeElement is Ellipse || shapeElement is Polygon)
+                {
+                    if (shapeElement is Rectangle rect) rect.Fill = fill;
+                    else if (shapeElement is Ellipse ellipse) ellipse.Fill = fill;
+                    else if (shapeElement is Polygon polygon) polygon.Fill = fill;
+
+                    _selectedShape.Fill = fill;
+                }
+            }
+        }
+
         private void ColorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ColorComboBox.SelectedItem is ComboBoxItem item && item.Tag is string colorName)
             {
-                _currentBrushColor = (Brush)new BrushConverter().ConvertFromString(colorName);
+                try
+                {
+                    var brush = (Brush)new BrushConverter().ConvertFromString(colorName);
+                    _currentBrushColor = brush;
+                    if (_selectedElement != null)
+                    {
+                        ChangeSelectedShapeColor(brush, _selectedShape?.Fill ?? Brushes.Transparent);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при изменении цвета: {ex.Message}");
+                }
             }
         }
 
@@ -759,6 +796,89 @@ namespace Graphic_editor_DK
                     _currentBrushSize = size;
                 }
             }
+        }
+
+        // МЕТОД ДЛЯ ОБНОВЛЕНИЯ ХОЛСТА ПРИ ЗАГРУЗКЕ ПРОЕКТА
+        public void RefreshCanvas()
+        {
+            DrawingCanvas.Children.Clear();
+            _shapes.Clear();
+
+            foreach (var shape in ViewModel.DrawingService.Shapes)
+            {
+                if (shape is LineShape lineShape)
+                {
+                    var line = new Line
+                    {
+                        X1 = lineShape.StartPoint.X,
+                        Y1 = lineShape.StartPoint.Y,
+                        X2 = lineShape.EndPoint.X,
+                        Y2 = lineShape.EndPoint.Y,
+                        Stroke = lineShape.Stroke,
+                        StrokeThickness = lineShape.StrokeThickness
+                    };
+                    DrawingCanvas.Children.Add(line);
+                    _shapes.Add(lineShape);
+                }
+                else if (shape is RectangleShape rectShape)
+                {
+                    var rect = new Rectangle
+                    {
+                        Stroke = rectShape.Stroke,
+                        Fill = rectShape.Fill,
+                        StrokeThickness = rectShape.StrokeThickness
+                    };
+
+                    var start = rectShape.StartPoint;
+                    var end = rectShape.EndPoint;
+                    Canvas.SetLeft(rect, Math.Min(start.X, end.X));
+                    Canvas.SetTop(rect, Math.Min(start.Y, end.Y));
+                    rect.Width = Math.Abs(end.X - start.X);
+                    rect.Height = Math.Abs(end.Y - start.Y);
+
+                    DrawingCanvas.Children.Add(rect);
+                    _shapes.Add(rectShape);
+                }
+                else if (shape is EllipseShape ellipseShape)
+                {
+                    var ellipse = new Ellipse
+                    {
+                        Stroke = ellipseShape.Stroke,
+                        Fill = ellipseShape.Fill,
+                        StrokeThickness = ellipseShape.StrokeThickness
+                    };
+
+                    var start = ellipseShape.StartPoint;
+                    var end = ellipseShape.EndPoint;
+                    Canvas.SetLeft(ellipse, Math.Min(start.X, end.X));
+                    Canvas.SetTop(ellipse, Math.Min(start.Y, end.Y));
+                    ellipse.Width = Math.Abs(end.X - start.X);
+                    ellipse.Height = Math.Abs(end.Y - start.Y);
+
+                    DrawingCanvas.Children.Add(ellipse);
+                    _shapes.Add(ellipseShape);
+                }
+                else if (shape is TriangleShape triangleShape)
+                {
+                    var polygon = new Polygon
+                    {
+                        Stroke = triangleShape.Stroke,
+                        Fill = triangleShape.Fill,
+                        StrokeThickness = triangleShape.StrokeThickness
+                    };
+
+                    UpdateTrianglePoints(polygon, triangleShape.StartPoint, triangleShape.EndPoint);
+
+                    DrawingCanvas.Children.Add(polygon);
+                    _shapes.Add(triangleShape);
+                }
+            }
+        }
+
+        // МЕТОД ДЛЯ ОБНОВЛЕНИЯ ПРИ ЗАГРУЗКЕ ПРОЕКТА
+        public void OnProjectLoaded()
+        {
+            RefreshCanvas();
         }
     }
 }
