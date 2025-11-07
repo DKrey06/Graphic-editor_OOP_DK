@@ -171,6 +171,10 @@ namespace Graphic_editor_DK
                     StrokeThickness = 2
                 };
             }
+            else if (currentTool is BrushTool)
+            {
+                Console.WriteLine($"Brush started at {startPoint}");
+            };
         }
 
         private void UpdateCurrentShape(Point currentPoint)
@@ -246,6 +250,23 @@ namespace Graphic_editor_DK
                           "Выделение",
                           MessageBoxButton.OK,
                           MessageBoxImage.Information);
+        }
+        private void ColorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ColorComboBox.SelectedItem is ComboBoxItem item && item.Tag is string colorName)
+            {
+                var color = (Brush)new BrushConverter().ConvertFromString(colorName);
+                Console.WriteLine($"Selected color: {colorName}");
+
+            }
+        }
+
+        private void BrushSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (BrushSizeComboBox.SelectedItem is ComboBoxItem item && item.Content is string sizeText)
+            {
+                Console.WriteLine($"Selected brush size: {sizeText}");
+            }
         }
     }
 }
