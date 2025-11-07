@@ -1,19 +1,26 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using Graphic_editor_DK.Models.Shapes;
 using Graphic_editor_DK.Models.Tools;
+using Graphic_editor_DK.Services;
 using Graphic_editor_DK.Utilities.Enums;
 using Graphic_editor_DK.Utilities.Extensions;
 using Microsoft.Win32;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Input;
 
 namespace Graphic_editor_DK.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
         private ToolManager _toolManager;
+        private DrawingService _drawingService;
+        private FileService _fileService;
 
         public MainViewModel()
         {
             _toolManager = new ToolManager();
+            _drawingService = new DrawingService();
+            _fileService = new FileService();
 
             NewCommand = new RelayCommand(ExecuteNew);
             OpenCommand = new RelayCommand(ExecuteOpen);
@@ -24,6 +31,7 @@ namespace Graphic_editor_DK.ViewModels
         }
 
         public ToolManager ToolManager => _toolManager;
+        public DrawingService DrawingService => _drawingService;
 
         public ICommand NewCommand { get; }
         public ICommand OpenCommand { get; }
@@ -34,33 +42,32 @@ namespace Graphic_editor_DK.ViewModels
 
         private void ExecuteNew()
         {
-            var result = MessageBox.Show("Создать новый проект?",
-                                        "Новый проект",
-                                        MessageBoxButton.YesNo,
-                                        MessageBoxImage.Question);
-
+            var result = MessageBox.Show("Создать новый проект?", "Новый проект",
+                                       MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                MessageBox.Show("Новый проект создан", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                //Очистку холста добавить надо будет
-            }
-        }
-
-        private void ExecuteOpen()
-        {
-            var openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-            {
-                MessageBox.Show($"Открытие файла: {openFileDialog.FileName}");
+                _drawingService.Clear();
+                MessageBox.Show("Новый проект создан", "Успех",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
         private void ExecuteSave()
         {
-            var saveFileDialog = new SaveFileDialog();
-            if (saveFileDialog.ShowDialog() == true)
+            var shapesList = new List<BaseShape>(_drawingService.Shapes);
+            _fileService.SaveProject(shapesList);
+        }
+
+        private void ExecuteOpen()
+        {
+            var shapes = _fileService.LoadProject();
+            if (shapes != null)
             {
-                MessageBox.Show($"Сохранение в: {saveFileDialog.FileName}");
+                _drawingService.Clear();
+                foreach (var shape in shapes)
+                {
+                    _drawingService.Shapes.Add(shape);
+                }
             }
         }
 
