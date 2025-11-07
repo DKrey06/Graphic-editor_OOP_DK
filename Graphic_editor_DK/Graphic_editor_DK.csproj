@@ -80,9 +80,11 @@
     <Compile Include="Models\Tools\BaseTool.cs" />
     <Compile Include="Models\Tools\BrushTool.cs" />
     <Compile Include="Models\Tools\EllipseTool.cs" />
+    <Compile Include="Models\Tools\EraserTool.cs" />
     <Compile Include="Models\Tools\LineTool.cs" />
     <Compile Include="Models\Tools\RectangleTool.cs" />
     <Compile Include="Models\Tools\SelectionTool.cs" />
+    <Compile Include="Models\Tools\TextTool.cs" />
     <Compile Include="Models\Tools\ToolManager.cs" />
     <Compile Include="Models\Tools\TriangleTool.cs" />
     <Compile Include="Services\DrawingService.cs" />

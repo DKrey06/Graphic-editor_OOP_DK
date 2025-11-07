@@ -41,8 +41,14 @@ namespace Graphic_editor_DK.Models.Tools
                     return new RectangleTool();
                 case ToolType.Ellipse:
                     return new EllipseTool();
+                case ToolType.Triangle:
+                    return new TriangleTool();
                 case ToolType.Brush:
                     return new BrushTool();
+                case ToolType.Text:
+                    return new TextTool();
+                case ToolType.Eraser:
+                    return new EraserTool();
                 default:
                     return new SelectionTool();
             }
