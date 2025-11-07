@@ -59,6 +59,7 @@
     <Compile Include="Models\Shapes\LineShape.cs" />
     <Compile Include="Models\Shapes\RectangleShape.cs" />
     <Compile Include="Models\Tools\BaseTool.cs" />
+    <Compile Include="Models\Tools\BrushTool.cs" />
     <Compile Include="Models\Tools\EllipseTool.cs" />
     <Compile Include="Models\Tools\LineTool.cs" />
     <Compile Include="Models\Tools\RectangleTool.cs" />

@@ -11,6 +11,7 @@ namespace Graphic_editor_DK.Utilities.Enums
         Selection,
         Line,
         Rectangle,
-        Ellipse
+        Ellipse,
+        Brush
     }
 }

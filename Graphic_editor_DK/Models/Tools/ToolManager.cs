@@ -41,6 +41,8 @@ namespace Graphic_editor_DK.Models.Tools
                     return new RectangleTool();
                 case ToolType.Ellipse:
                     return new EllipseTool();
+                case ToolType.Brush:
+                    return new BrushTool();
                 default:
                     return new SelectionTool();
             }
