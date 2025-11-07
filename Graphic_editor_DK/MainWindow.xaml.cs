@@ -42,10 +42,89 @@ namespace Graphic_editor_DK
             this.DataContext = viewModel;
             viewModel.SetMainWindow(this);
 
+            // Подписываемся на изменение инструмента
+            viewModel.ToolManager.ToolChanged += OnToolChanged;
+
+            // Инициализация комбобоксов
             ColorComboBox.SelectedIndex = 0;
             BrushSizeComboBox.SelectedIndex = 1;
+            ToolsComboBox.SelectedIndex = 0;
         }
 
+        // Обработчик изменения инструмента
+        private void OnToolChanged()
+        {
+            var currentTool = ViewModel.ToolManager.CurrentTool;
+            if (currentTool != null)
+            {
+                // Обновляем текст в статус баре
+                CurrentToolText.Text = "Инструмент: " + GetToolDisplayName(currentTool.ToolType);
+
+                // Обновляем выбранный элемент в комбобоксе
+                UpdateToolsComboBoxSelection(currentTool.ToolType);
+            }
+        }
+
+        // Получение отображаемого имени инструмента
+        private string GetToolDisplayName(Graphic_editor_DK.Utilities.Enums.ToolType toolType)
+        {
+            switch (toolType)
+            {
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Selection: return "Курсор";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Line: return "Линия";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Rectangle: return "Прямоугольник";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Ellipse: return "Эллипс";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Triangle: return "Треугольник";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Brush: return "Кисть";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Text: return "Текст";
+                case Graphic_editor_DK.Utilities.Enums.ToolType.Eraser: return "Ластик";
+                default: return "Курсор";
+            }
+        }
+
+        // Обновление выбранного элемента в комбобоксе
+        private void UpdateToolsComboBoxSelection(Graphic_editor_DK.Utilities.Enums.ToolType toolType)
+        {
+            string tag = toolType.ToString();
+            foreach (ComboBoxItem item in ToolsComboBox.Items)
+            {
+                if (item.Tag as string == tag)
+                {
+                    ToolsComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        // Обработчик изменения выбранного инструмента в комбобоксе
+        private void ToolsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ToolsComboBox.SelectedItem is ComboBoxItem item && item.Tag is string toolTag)
+            {
+                Graphic_editor_DK.Utilities.Enums.ToolType toolType;
+
+                if (toolTag == "Selection")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Selection;
+                else if (toolTag == "Line")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Line;
+                else if (toolTag == "Rectangle")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Rectangle;
+                else if (toolTag == "Ellipse")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Ellipse;
+                else if (toolTag == "Triangle")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Triangle;
+                else if (toolTag == "Brush")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Brush;
+                else if (toolTag == "Text")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Text;
+                else if (toolTag == "Eraser")
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Eraser;
+                else
+                    toolType = Graphic_editor_DK.Utilities.Enums.ToolType.Selection;
+
+                ViewModel.ToolManager.SetTool(toolType);
+            }
+        }
         protected override void OnKeyDown(KeyEventArgs e)
         {
             if (e.Key == Key.Delete && _selectedElement != null)

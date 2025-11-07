@@ -1,0 +1,52 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Смайлы-иконки для инструментов -->
+    <Style x:Key="SmileyIconStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+    </Style>
+
+    <!-- Курсор - указатель -->
+    <Style x:Key="SelectionIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="🖱️"/>
+    </Style>
+
+    <!-- Линия - линейка -->
+    <Style x:Key="LineIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="📏"/>
+    </Style>
+
+    <!-- Прямоугольник - квадрат -->
+    <Style x:Key="RectangleIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="⬜"/>
+    </Style>
+
+    <!-- Эллипс - круг -->
+    <Style x:Key="EllipseIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="⭕"/>
+    </Style>
+
+    <!-- Треугольник -->
+    <Style x:Key="TriangleIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="🔺"/>
+    </Style>
+
+    <!-- Кисть - кисточка -->
+    <Style x:Key="BrushIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="🖌️"/>
+    </Style>
+
+    <!-- Текст - буквы -->
+    <Style x:Key="TextIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="🔤"/>
+    </Style>
+
+    <!-- Ластик -->
+    <Style x:Key="EraserIcon" TargetType="TextBlock" BasedOn="{StaticResource SmileyIconStyle}">
+        <Setter Property="Text" Value="🧽"/>
+    </Style>
+
+</ResourceDictionary>
