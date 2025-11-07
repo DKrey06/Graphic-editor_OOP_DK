@@ -3,10 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:enums="clr-namespace:Graphic_editor_DK.Utilities.Enums"
         Title="Graphic Editor DK" Height="600" Width="800"
+        WindowState="Maximized"
         MouseMove="Window_MouseMove">
 
-    <DockPanel>
-        <Menu DockPanel.Dock="Top">
+    <Grid Background="LightGray">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
             <MenuItem Header="Файл">
                 <MenuItem Header="Новый" Command="{Binding NewCommand}"/>
                 <MenuItem Header="Открыть" Command="{Binding OpenCommand}"/>
@@ -19,37 +27,37 @@
             <MenuItem Header="Инструменты"/>
         </Menu>
 
-        <ToolBar DockPanel.Dock="Top">
+        <ToolBar Grid.Row="1">
             <Button Content="Выделение" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Selection}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Selection}"/>
             <Button Content="Линия" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Line}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Line}"/>
             <Button Content="Прямоугольник" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Rectangle}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Rectangle}"/>
             <Button Content="Эллипс" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Ellipse}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Ellipse}"/>
             <Button Content="Треугольник" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Triangle}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Triangle}"/>
             <Button Content="Текст" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Text}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Text}"/>
             <Button Content="Кисть" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Brush}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Brush}"/>
             <Button Content="Ластик" 
-            Command="{Binding SetToolCommand}"
-            CommandParameter="{x:Static enums:ToolType.Eraser}"/>
+                    Command="{Binding SetToolCommand}"
+                    CommandParameter="{x:Static enums:ToolType.Eraser}"/>
 
             <Separator/>
-            <!-- Палитра базовых цветов -->
+
             <TextBlock Text="Цвет:" VerticalAlignment="Center" Margin="5,0"/>
             <ComboBox x:Name="ColorComboBox" Width="80" 
-              SelectionChanged="ColorComboBox_SelectionChanged">
+                      SelectionChanged="ColorComboBox_SelectionChanged">
                 <ComboBoxItem Background="Black" Tag="Black"/>
                 <ComboBoxItem Background="Red" Tag="Red"/>
                 <ComboBoxItem Background="Green" Tag="Green"/>
@@ -63,7 +71,7 @@
 
             <TextBlock Text="Размер:" VerticalAlignment="Center" Margin="5,0"/>
             <ComboBox x:Name="BrushSizeComboBox" Width="60"
-              SelectionChanged="BrushSizeComboBox_SelectionChanged">
+                      SelectionChanged="BrushSizeComboBox_SelectionChanged">
                 <ComboBoxItem Content="1"/>
                 <ComboBoxItem Content="3"/>
                 <ComboBoxItem Content="5"/>
@@ -72,17 +80,37 @@
             </ComboBox>
         </ToolBar>
 
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <Canvas x:Name="DrawingCanvas" Background="White" 
-                    Width="1000" Height="1000"
-                    MouseDown="DrawingCanvas_MouseDown"
-                    MouseMove="DrawingCanvas_MouseMove"
-                    MouseUp="DrawingCanvas_MouseUp"/>
+        <ScrollViewer Grid.Row="2" 
+                      HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Auto"
+                      Background="LightGray"
+                      Padding="10">
+            <Border Background="White" 
+                    BorderBrush="DarkGray" 
+                    BorderThickness="1"
+                    CornerRadius="2">
+                <Canvas x:Name="DrawingCanvas" 
+                        Background="White" 
+                        MinWidth="1000" 
+                        MinHeight="1000"
+                        MouseDown="DrawingCanvas_MouseDown"
+                        MouseMove="DrawingCanvas_MouseMove"
+                        MouseUp="DrawingCanvas_MouseUp"/>
+            </Border>
         </ScrollViewer>
 
-        <StatusBar DockPanel.Dock="Bottom">
-            <TextBlock x:Name="CoordinatesText" Text="X: 0, Y: 0"/>
-            <TextBlock x:Name="ToolInfoText" Text="Инструмент: Выделение" Margin="20,0"/>
+        <StatusBar Grid.Row="3" Background="LightGray" Height="25">
+            <StatusBarItem>
+                <TextBlock x:Name="CoordinatesText" Text="X: 0, Y: 0" FontWeight="SemiBold"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock x:Name="ToolInfoText" 
+                          Text="{Binding ToolManager.CurrentTool.ToolType, StringFormat='Инструмент: {0}'}" 
+                          FontWeight="SemiBold"/>
+            </StatusBarItem>
         </StatusBar>
-    </DockPanel>
+    </Grid>
 </Window>
