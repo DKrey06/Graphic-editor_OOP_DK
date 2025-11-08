@@ -31,7 +31,6 @@ namespace Graphic_editor_DK.Models.Tools
                 };
                 _isDrawing = true;
 
-                //Временно просто создаем фигуру, без событий. Позже подключить к холсту
             }
         }
 
@@ -40,7 +39,6 @@ namespace Graphic_editor_DK.Models.Tools
             if (_isDrawing && _currentLine != null)
             {
                 _currentLine.EndPoint = point;
-                //Временно без событий
             }
         }
 
@@ -50,7 +48,6 @@ namespace Graphic_editor_DK.Models.Tools
             {
                 _currentLine.EndPoint = point;
                 _isDrawing = false;
-                //Временно без событий
             }
         }
     }

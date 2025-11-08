@@ -36,11 +36,12 @@ namespace Graphic_editor_DK.Models.Shapes
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    try
+                    var color = ColorConverter.ConvertFromString(value);
+                    if (color is Color convertedColor)
                     {
-                        Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+                        Stroke = new SolidColorBrush(convertedColor);
                     }
-                    catch
+                    else
                     {
                         Stroke = Brushes.Black;
                     }
@@ -55,11 +56,12 @@ namespace Graphic_editor_DK.Models.Shapes
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    try
+                    var color = ColorConverter.ConvertFromString(value);
+                    if (color is Color convertedColor)
                     {
-                        Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+                        Fill = new SolidColorBrush(convertedColor);
                     }
-                    catch
+                    else
                     {
                         Fill = Brushes.Transparent;
                     }
